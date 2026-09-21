@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowUpRight,
   Plus,
-  Users,
   CalendarDays,
   MessageSquare,
   Megaphone,
@@ -108,7 +107,6 @@ export function CommunityFeed() {
     <>
       <section className="page-heading">
         <div>
-          <div className="eyebrow">THE PEOPLE BEHIND THE PEDALS</div>
           <h1>Better on two wheels. Together.</h1>
           <p>Swap local knowledge, find your next ride, and look out for each other.</p>
         </div>
@@ -145,256 +143,219 @@ export function CommunityFeed() {
           <span className="art-star">✳</span>
         </div>
       </section>
-      <div className="notice">
-        <Users size={18} />
-        <p>
-          <strong>A little demo neighbourhood.</strong> People and posts below are fictional. New
-          posts stay in this tab and disappear on refresh.
-        </p>
-      </div>
       {message && (
         <p className="success-notice" role="status">
           {message}
         </p>
       )}
-      <div className="content-columns">
-        <section>
-          <div className="feed-toolbar">
-            <div className="tabs" aria-label="Filter posts">
-              {(['all', 'post', 'meetup', 'stolen'] as const).map((value) => (
-                <button
-                  key={value}
-                  aria-pressed={tab === value}
-                  className={tab === value ? 'selected' : ''}
-                  onClick={() => setTab(value)}
-                >
-                  {tabLabels[value]}
-                </button>
-              ))}
-            </div>
-            <span className="muted">{filtered.length} posts</span>
+      <section>
+        <div className="feed-toolbar">
+          <div className="tabs" aria-label="Filter posts">
+            {(['all', 'post', 'meetup', 'stolen'] as const).map((value) => (
+              <button
+                key={value}
+                aria-pressed={tab === value}
+                className={tab === value ? 'selected' : ''}
+                onClick={() => setTab(value)}
+              >
+                {tabLabels[value]}
+              </button>
+            ))}
           </div>
-          {composing && (
-            <form className="panel compose-panel" onSubmit={handleSubmit(submit)} noValidate>
-              <div className="panel-heading">
-                <h2>
-                  {kind === 'stolen' ? 'Ask your neighbours to look out' : 'Share something good'}
-                </h2>
-                <button
-                  type="button"
-                  className="icon-button"
-                  aria-label="Close post form"
-                  onClick={() => setComposing(false)}
-                >
-                  <X size={19} />
-                </button>
-              </div>
-              <label>
-                Post type
-                <select
-                  {...register('kind', {
-                    onChange: (event) => setKind(event.target.value as PostKind),
-                  })}
-                >
-                  <option value="post">Local tip / discussion</option>
-                  <option value="meetup">Bike meetup</option>
-                  <option value="stolen">Stolen bike alert</option>
-                </select>
-              </label>
-              <label>
-                Title
-                <input
-                  {...register('title')}
-                  placeholder={
-                    kind === 'stolen'
-                      ? 'e.g. Dark green Gazelle taken near Wyck'
-                      : 'What’s on your mind?'
-                  }
-                />
-                {errors.title && (
-                  <span className="field-error" role="alert">
-                    {errors.title.message}
-                  </span>
-                )}
-              </label>
-              {kind === 'stolen' && (
-                <>
-                  <label>
-                    Area to watch
-                    <input {...register('area')} placeholder="e.g. Wyck, near the station" />
-                    {errors.area && (
-                      <span className="field-error" role="alert">
-                        {errors.area.message}
-                      </span>
-                    )}
-                  </label>
-                  <label>
-                    Last seen on
-                    <input type="date" {...register('lastSeenOn')} />
-                    {errors.lastSeenOn && (
-                      <span className="field-error" role="alert">
-                        {errors.lastSeenOn.message}
-                      </span>
-                    )}
-                  </label>
-                  <div className="photo-field">
-                    <label htmlFor="stolen-photo">
-                      Photo of the bike <span className="optional">optional</span>
-                    </label>
-                    <input
-                      key={photoFieldKey}
-                      id="stolen-photo"
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={pickPhoto}
-                    />
-                    {photoError && (
-                      <span className="field-error" role="alert">
-                        {photoError}
-                      </span>
-                    )}
-                    {photo && (
-                      <div className="photo-preview">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={photo.src} alt={photo.alt} />
-                        <button type="button" onClick={clearPhoto}>
-                          <Trash2 size={14} /> Remove photo
-                        </button>
-                      </div>
-                    )}
-                    <p className="form-hint">
-                      JPEG, PNG or WebP up to 4 MB. Your photo stays on your device.
-                    </p>
-                  </div>
-                </>
+          <span className="muted">{filtered.length} posts</span>
+        </div>
+        {composing && (
+          <form className="panel compose-panel" onSubmit={handleSubmit(submit)} noValidate>
+            <div className="panel-heading">
+              <h2>
+                {kind === 'stolen' ? 'Ask your neighbours to look out' : 'Share something good'}
+              </h2>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Close post form"
+                onClick={() => setComposing(false)}
+              >
+                <X size={19} />
+              </button>
+            </div>
+            <label>
+              Post type
+              <select
+                {...register('kind', {
+                  onChange: (event) => setKind(event.target.value as PostKind),
+                })}
+              >
+                <option value="post">Local tip / discussion</option>
+                <option value="meetup">Bike meetup</option>
+                <option value="stolen">Stolen bike alert</option>
+              </select>
+            </label>
+            <label>
+              Title
+              <input
+                {...register('title')}
+                placeholder={
+                  kind === 'stolen'
+                    ? 'e.g. Dark green Gazelle taken near Wyck'
+                    : 'What’s on your mind?'
+                }
+              />
+              {errors.title && (
+                <span className="field-error" role="alert">
+                  {errors.title.message}
+                </span>
               )}
-              <label>
-                Message
-                <textarea
-                  {...register('body')}
-                  rows={4}
-                  placeholder={
-                    kind === 'stolen'
-                      ? 'Describe the bike: colour, frame, stickers, basket, anything recognisable…'
-                      : 'Share a tip, or include the date and meeting place for your ride…'
-                  }
-                />
-                {errors.body && (
-                  <span className="field-error" role="alert">
-                    {errors.body.message}
-                  </span>
-                )}
-              </label>
-              {kind === 'stolen' && (
-                <div className="notice compose-note">
-                  <Megaphone size={18} />
-                  <p>
-                    This is a public lookout post. Leave out frame numbers, home addresses and any
-                    accusation about a person. For a private record use{' '}
-                    <strong>Report a theft</strong>, and file with the police — that’s what opens a
-                    case.
+            </label>
+            {kind === 'stolen' && (
+              <>
+                <label>
+                  Area to watch
+                  <input {...register('area')} placeholder="e.g. Wyck, near the station" />
+                  {errors.area && (
+                    <span className="field-error" role="alert">
+                      {errors.area.message}
+                    </span>
+                  )}
+                </label>
+                <label>
+                  Last seen on
+                  <input type="date" {...register('lastSeenOn')} />
+                  {errors.lastSeenOn && (
+                    <span className="field-error" role="alert">
+                      {errors.lastSeenOn.message}
+                    </span>
+                  )}
+                </label>
+                <div className="photo-field">
+                  <label htmlFor="stolen-photo">
+                    Photo of the bike <span className="optional">optional</span>
+                  </label>
+                  <input
+                    key={photoFieldKey}
+                    id="stolen-photo"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={pickPhoto}
+                  />
+                  {photoError && (
+                    <span className="field-error" role="alert">
+                      {photoError}
+                    </span>
+                  )}
+                  {photo && (
+                    <div className="photo-preview">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photo.src} alt={photo.alt} />
+                      <button type="button" onClick={clearPhoto}>
+                        <Trash2 size={14} /> Remove photo
+                      </button>
+                    </div>
+                  )}
+                  <p className="form-hint">
+                    JPEG, PNG or WebP up to 4 MB. Your photo stays on your device.
                   </p>
                 </div>
+              </>
+            )}
+            <label>
+              Message
+              <textarea
+                {...register('body')}
+                rows={4}
+                placeholder={
+                  kind === 'stolen'
+                    ? 'Describe the bike: colour, frame, stickers, basket, anything recognisable…'
+                    : 'Share a tip, or include the date and meeting place for your ride…'
+                }
+              />
+              {errors.body && (
+                <span className="field-error" role="alert">
+                  {errors.body.message}
+                </span>
               )}
-              <div className="form-bottom">
-                <span>Keep personal details private</span>
-                <Button type="submit">
-                  {kind === 'stolen' ? 'Publish alert' : 'Publish post'} <ArrowUpRight size={16} />
-                </Button>
+            </label>
+            {kind === 'stolen' && (
+              <div className="notice compose-note">
+                <Megaphone size={18} />
+                <p>
+                  This is a public lookout post. Leave out frame numbers, home addresses and any
+                  accusation about a person. For a private record use{' '}
+                  <strong>Report a theft</strong>, and file with the police — that’s what opens a
+                  case.
+                </p>
               </div>
-            </form>
-          )}
-          <div className="feed">
-            {filtered.map((post) => {
-              const TagIcon = tagIcons[post.kind];
-              return (
-                <article className="panel post-card" key={post.id}>
-                  <div className="post-meta">
-                    <span
-                      className={`avatar ${post.kind === 'meetup' ? 'avatar-peach' : ''}${
-                        post.kind === 'stolen' ? 'avatar-alert' : ''
-                      }`}
-                    >
-                      {post.initials}
-                    </span>
-                    <div>
-                      <strong>{post.author}</strong>
-                      <small>{post.date}</small>
-                    </div>
-                    <span className={`post-tag ${post.kind}`}>
-                      <TagIcon size={13} />
-                      {tagLabels[post.kind]}
-                    </span>
-                  </div>
-                  <h2>{post.title}</h2>
-                  {post.kind === 'stolen' && (
-                    <p className="post-facts">
-                      {post.area ? <span>Watch around {post.area}</span> : null}
-                      {post.lastSeenOn ? <span>Last seen {formatDay(post.lastSeenOn)}</span> : null}
-                    </p>
-                  )}
-                  <p>{post.body}</p>
-                  {post.photo && (
-                    <figure className="post-photo">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={post.photo.src} alt={post.photo.alt} />
-                    </figure>
-                  )}
-                  <div className="post-bottom">
-                    <span>
-                      {post.own ? 'Your session-only post' : 'Fictional community example'}
-                    </span>
-                    {post.own && (
-                      <button
-                        className="delete-post"
-                        onClick={() => {
-                          deletePost(post.id);
-                          setMessage('Post deleted.');
-                        }}
-                      >
-                        <Trash2 size={14} /> Delete
-                      </button>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-          {filtered.length === 0 && (
-            <div className="panel empty-state">
-              {tab === 'stolen'
-                ? 'No stolen bike alerts right now. That is good news.'
-                : 'No posts here yet. Start the conversation.'}
+            )}
+            <div className="form-bottom">
+              <span>Keep personal details private</span>
+              <Button type="submit">
+                {kind === 'stolen' ? 'Publish alert' : 'Publish post'} <ArrowUpRight size={16} />
+              </Button>
             </div>
-          )}
-        </section>
-        <aside className="help-column">
-          <section className="help-card">
-            <span className="overview-icon mint">
-              <Heart size={21} />
-            </span>
-            <h2>
-              A good neighbour
-              <br />
-              on two wheels.
-            </h2>
-            <p>Keep it kind, keep it local, and make space for everyone.</p>
-            <ul className="community-rules">
-              <li>Share helpful, practical tips.</li>
-              <li>Welcome riders of every pace.</li>
-              <li>Keep personal information private.</li>
-              <li>Use a stolen bike alert to ask for help, never to accuse someone.</li>
-              <li>Post an alert here and file with the police — they do different jobs.</li>
-            </ul>
-          </section>
-          <div className="small-note">
-            <Bike size={24} />
-            <p>
-              Have an idea for a ride? Create a meetup post with a time and public meeting place.
-            </p>
+          </form>
+        )}
+        <div className="feed">
+          {filtered.map((post) => {
+            const TagIcon = tagIcons[post.kind];
+            return (
+              <article className="panel post-card" key={post.id}>
+                <div className="post-meta">
+                  <span
+                    className={`avatar ${post.kind === 'meetup' ? 'avatar-peach' : ''}${
+                      post.kind === 'stolen' ? 'avatar-alert' : ''
+                    }`}
+                  >
+                    {post.initials}
+                  </span>
+                  <div>
+                    <strong>{post.author}</strong>
+                    <small>{post.date}</small>
+                  </div>
+                  <span className={`post-tag ${post.kind}`}>
+                    <TagIcon size={13} />
+                    {tagLabels[post.kind]}
+                  </span>
+                </div>
+                <h2>{post.title}</h2>
+                {post.kind === 'stolen' && (
+                  <p className="post-facts">
+                    {post.area ? <span>Watch around {post.area}</span> : null}
+                    {post.lastSeenOn ? <span>Last seen {formatDay(post.lastSeenOn)}</span> : null}
+                  </p>
+                )}
+                <p>{post.body}</p>
+                {post.photo && (
+                  <figure className="post-photo">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={post.photo.src} alt={post.photo.alt} />
+                  </figure>
+                )}
+                <div className="post-bottom">
+                  <span>{post.own ? 'Your session-only post' : 'Fictional community example'}</span>
+                  {post.own && (
+                    <button
+                      className="delete-post"
+                      onClick={() => {
+                        deletePost(post.id);
+                        setMessage('Post deleted.');
+                      }}
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        {filtered.length === 0 && (
+          <div className="panel empty-state">
+            {tab === 'stolen'
+              ? 'No stolen bike alerts right now. That is good news.'
+              : 'No posts here yet. Start the conversation.'}
           </div>
-        </aside>
-      </div>
+        )}
+      </section>
     </>
   );
 }

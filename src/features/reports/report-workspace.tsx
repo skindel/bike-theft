@@ -87,7 +87,6 @@ export function ReportWorkspace() {
     <>
       <section className="page-heading">
         <div>
-          <div className="eyebrow">LET’S TAKE THE NEXT STEP</div>
           <h1>Missing bike? Start here.</h1>
           <p>Get the details together. We’ll help you prepare a clear report.</p>
         </div>
