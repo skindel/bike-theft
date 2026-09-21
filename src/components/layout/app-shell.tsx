@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Map, FileText, Users, ArrowUpRight, MapPin, FlaskConical, Shield } from 'lucide-react';
+import { Map, FileText, Users, ArrowUpRight, MapPin, Shield } from 'lucide-react';
 const navigation = [
   { href: '/map', label: 'Explore map', icon: Map },
   { href: '/reports', label: 'Report a theft', icon: FileText },
@@ -78,9 +78,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="topbar no-print">
           <span>
             <span className="live-dot" /> Maastricht, Netherlands
-          </span>
-          <span className="demo-badge">
-            <FlaskConical size={13} /> Interactive demo
           </span>
         </header>
         <main id="main">{children}</main>

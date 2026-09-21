@@ -112,7 +112,6 @@ export function MapExplorer() {
     <>
       <section className="page-heading">
         <div>
-          <div className="eyebrow">A LITTLE LOCAL KNOWLEDGE</div>
           <h1>
             Your city. Your bike.
             <br className="mobile-break" /> A safer spot.
