@@ -39,7 +39,7 @@ test('validate, save, download, keep across navigation, and remove a report summ
   await page.getByLabel('Last seen', { exact: false }).fill('2025-01-01T10:00');
   await page.getByLabel('Discovered missing', { exact: false }).fill('2025-01-01T11:00');
   await page.getByRole('button', { name: 'Save report' }).click();
-  await expect(page.getByText('Your report has been saved.')).toBeVisible();
+  await expect(page.getByText('Report saved.')).toBeVisible();
   await expect(page.getByText(/Binnenstad/)).toBeVisible();
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download summary' }).click();
@@ -59,7 +59,7 @@ test('community posts are session only and filterable', async ({ page }) => {
   await page.getByLabel('Title', { exact: true }).fill('Evening ride');
   await page.getByLabel('Message', { exact: true }).fill('Meet at the station for a gentle loop.');
   await page.getByLabel('Post type').selectOption('meetup');
-  await page.getByRole('button', { name: 'Add demo post' }).click();
+  await page.getByRole('button', { name: 'Publish post' }).click();
   await expect(page.getByRole('heading', { name: 'Evening ride' })).toBeVisible();
   await page.getByRole('button', { name: 'Local tips', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Evening ride' })).toHaveCount(0);
@@ -82,13 +82,13 @@ test('a stolen bike alert needs an area and a past date, and can carry a photo',
   await page.getByLabel('Post type').selectOption('stolen');
   await page.getByLabel('Title', { exact: true }).fill('Blue Batavus missing from Sint Pieter');
   await page.getByLabel('Message', { exact: true }).fill('Blue city bike with a front basket.');
-  await page.getByRole('button', { name: 'Post demo alert' }).click();
+  await page.getByRole('button', { name: 'Publish alert' }).click();
   await expect(page.getByText('Name an area people can watch')).toBeVisible();
   await expect(page.getByText('Enter the date it went missing')).toBeVisible();
   await expect(page.getByRole('heading', { name: /Blue Batavus/ })).toHaveCount(0);
   await page.getByLabel('Area to watch').fill('Sint Pieter');
   await page.getByLabel('Last seen on').fill('2099-01-01');
-  await page.getByRole('button', { name: 'Post demo alert' }).click();
+  await page.getByRole('button', { name: 'Publish alert' }).click();
   await expect(page.getByText('Cannot be in the future')).toBeVisible();
   await page.getByLabel('Last seen on').fill('2025-06-01');
   await page.setInputFiles('#stolen-photo', {
@@ -101,7 +101,7 @@ test('a stolen bike alert needs an area and a past date, and can carry a photo',
     ),
   });
   await expect(page.getByRole('img', { name: 'Photo of the missing bike' })).toBeVisible();
-  await page.getByRole('button', { name: 'Post demo alert' }).click();
+  await page.getByRole('button', { name: 'Publish alert' }).click();
   await expect(page.getByRole('heading', { name: /Blue Batavus/ })).toBeVisible();
   await expect(page.getByText('Watch around Sint Pieter')).toBeVisible();
   await expect(page.getByText('Last seen 1 Jun 2025')).toBeVisible();

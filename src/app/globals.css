@@ -243,7 +243,7 @@ strong {
   font-size: 11px;
   margin-top: 18px;
 }
-.demo-profile {
+.app-profile {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -251,7 +251,7 @@ strong {
   padding-top: 23px;
   margin-top: 28px;
 }
-.demo-profile > span {
+.app-profile > span {
   background: #202C3D;
   border-radius: 50%;
   width: 33px;
@@ -260,17 +260,17 @@ strong {
   place-items: center;
   font-size: 10px;
 }
-.demo-profile strong {
+.app-profile strong {
   font-size: 11px;
   display: block;
 }
-.demo-profile small {
+.app-profile small {
   font-size: 10px;
   display: block;
   color: #64748B;
   margin-top: 4px;
 }
-.demo-profile > svg {
+.app-profile > svg {
   margin-left: auto;
   color: #64748B;
 }

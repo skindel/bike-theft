@@ -1,6 +1,4 @@
 import type { CommunityPost } from '@/contracts';
-// A drawing, not a photograph: the sample post shows the layout without
-// presenting an invented theft as a real one.
 const sampleIllustration = `data:image/svg+xml,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 170" role="img">
     <rect width="320" height="170" fill="#151c27"/>

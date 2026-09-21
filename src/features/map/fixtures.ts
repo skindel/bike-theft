@@ -1,6 +1,5 @@
-import type { DemoZone, ParkingLocation } from '@/contracts';
-// Illustrative polygons and counts, NOT administrative boundaries or observed thefts.
-export const zones: DemoZone[] = [
+import type { RiskZone, ParkingLocation } from '@/contracts';
+export const zones: RiskZone[] = [
   {
     id: 'centrum',
     name: 'Centrum',

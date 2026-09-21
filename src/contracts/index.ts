@@ -9,7 +9,7 @@ export interface ParkingLocation {
   guarded: boolean;
   note: string;
 }
-export interface DemoZone {
+export interface RiskZone {
   id: string;
   name: string;
   count: number | null;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { activityBand } from './risk';
 import { zones, parking } from './fixtures';
-describe('demo activity', () => {
+describe('activity bands', () => {
   it('distinguishes unknown data from low activity', () => {
     for (const value of [null, -1, NaN, Infinity]) expect(activityBand(value)).toBe('unknown');
     expect(activityBand(0)).toBe('low');

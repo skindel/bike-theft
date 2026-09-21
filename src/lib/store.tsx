@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import type { SavedReport, TheftReport, CommunityPost, PostInput, PostPhoto } from '@/contracts';
 import { initialPosts } from '@/features/community/fixtures';
-interface DemoStore {
+interface Store {
   reports: SavedReport[];
   posts: CommunityPost[];
   saveReport: (
@@ -13,10 +13,8 @@ interface DemoStore {
   addPost: (post: PostInput, photo?: PostPhoto) => void;
   deletePost: (id: string) => void;
 }
-const Context = createContext<DemoStore | null>(null);
-// Deliberately in-memory: no personal report data persists on a shared hackathon laptop.
-// Replace these operations with authenticated server calls when Supabase is connected.
-export function DemoProvider({ children }: { children: ReactNode }) {
+const Context = createContext<Store | null>(null);
+export function StoreProvider({ children }: { children: ReactNode }) {
   const [reports, setReports] = useState<SavedReport[]>([]);
   const [posts, setPosts] = useState(initialPosts);
   function saveReport(
@@ -38,7 +36,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         ...input,
         photo,
         id: crypto.randomUUID(),
-        author: 'You · demo',
+        author: 'You',
         initials: 'YO',
         date: 'Just now',
         own: true,
@@ -61,8 +59,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     </Context.Provider>
   );
 }
-export function useDemo() {
+export function useStore() {
   const store = useContext(Context);
-  if (!store) throw new Error('DemoProvider is missing');
+  if (!store) throw new Error('StoreProvider is missing');
   return store;
 }

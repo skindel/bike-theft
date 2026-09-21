@@ -13,10 +13,10 @@ import {
   FileText,
 } from 'lucide-react';
 import { reportSchema, type TheftReport, type SavedReport } from '@/contracts';
-import { useDemo } from '@/lib/demo-provider';
+import { useStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 function summary(report: SavedReport) {
-  return `CYCLEGUARD — PERSONAL THEFT SUMMARY\nNot an official police report.\n\nBike: ${report.brand} / ${report.type} / ${report.color}\nFrame number: ${report.serial || 'Unknown'}\nLocation: ${report.location}\nLast seen (entered local time): ${report.lastSeen}\nDiscovered missing (entered local time): ${report.discovered}\n\nDetails:\n${report.details || 'None provided'}\n\nPrepared: ${report.createdAt}\nReference: ${report.id}`;
+  return `CYCLEGUARD — PERSONAL THEFT SUMMARY\nPrepared for your official police report. This document is not the report itself.\n\nBike: ${report.brand} / ${report.type} / ${report.color}\nFrame number: ${report.serial || 'Unknown'}\nLocation: ${report.location}\nLast seen (entered local time): ${report.lastSeen}\nDiscovered missing (entered local time): ${report.discovered}\n\nDetails:\n${report.details || 'None provided'}\n\nPrepared: ${report.createdAt}\nReference: ${report.id}`;
 }
 function download(report: SavedReport) {
   const url = URL.createObjectURL(
@@ -29,7 +29,7 @@ function download(report: SavedReport) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export function ReportWorkspace() {
-  const { reports, saveReport, deleteReport } = useDemo();
+  const { reports, saveReport, deleteReport } = useStore();
   const [savedId, setSavedId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const {
@@ -98,16 +98,19 @@ export function ReportWorkspace() {
       <div className="notice">
         <ShieldCheck size={19} />
         <p>
-          <strong>Your report is stored securely.</strong> We validate Maastricht addresses and save
-          the report in Supabase. It is not submitted to the police.
+          <strong>Private to you.</strong> We verify the address against Dutch address records and
+          keep your report to yourself. Filing with the police is a separate step, and we link you
+          straight to it.
         </p>
       </div>
       {savedId && (
         <div className="success-notice" role="status">
           <Check size={20} />
           <div>
-            <strong>Your report has been saved.</strong>
-            <p>Download your summary below. Nothing has been submitted to the police.</p>
+            <strong>Report saved.</strong>
+            <p>
+              Download your summary, then file with the police — that’s the step that opens a case.
+            </p>
           </div>
           <Button
             variant="secondary"
@@ -265,8 +268,8 @@ export function ReportWorkspace() {
               <li>
                 <span>3</span>
                 <div>
-                  <strong>Make an official report</strong>
-                  <p>Use the police website to check the current process and submit your report.</p>
+                  <strong>File it with the police</strong>
+                  <p>This is the step that opens a case. Their site has the current process.</p>
                 </div>
               </li>
             </ol>
@@ -281,7 +284,7 @@ export function ReportWorkspace() {
           </section>
           <div className="small-note">
             <ShieldCheck size={20} />
-            <p>Preparing a CycleGuard summary does not file an official police report.</p>
+            <p>A CycleGuard summary gets you ready. The police report opens the case.</p>
           </div>
         </aside>
       </div>

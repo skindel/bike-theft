@@ -15,7 +15,7 @@ import {
   Heart,
 } from 'lucide-react';
 import { postSchema, type PostInput, type PostKind, type PostPhoto } from '@/contracts';
-import { useDemo } from '@/lib/demo-provider';
+import { useStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { checkPhoto, readPhoto } from './photo';
 const tabLabels = {
@@ -47,7 +47,7 @@ function formatDay(value: string) {
   });
 }
 export function CommunityFeed() {
-  const { posts, addPost, deletePost } = useDemo();
+  const { posts, addPost, deletePost } = useStore();
   const [tab, setTab] = useState<keyof typeof tabLabels>('all');
   const [composing, setComposing] = useState(false);
   const [message, setMessage] = useState('');
@@ -100,8 +100,8 @@ export function CommunityFeed() {
     setTab('all');
     setMessage(
       input.kind === 'stolen'
-        ? 'Your demo alert is in this tab’s feed. Nothing was published online or sent to the police.'
-        : 'Your demo post is now in this tab’s feed. It is not published online.',
+        ? 'Your alert is in the community feed. Filing with the police is a separate step.'
+        : 'Your post is in the community feed.',
     );
   }
   return (
@@ -133,7 +133,7 @@ export function CommunityFeed() {
             <span>LV</span>
             <span>SD</span>
             <span>NK</span>
-            <small>A sample of your future community</small>
+            <small>Riders looking out for each other</small>
           </div>
         </div>
         <div className="community-art" aria-hidden="true">
@@ -263,9 +263,7 @@ export function CommunityFeed() {
                       </div>
                     )}
                     <p className="form-hint">
-                      JPEG, PNG or WebP up to 4 MB. In this demo the photo stays in your browser and
-                      is never uploaded. Photos can carry the place and time they were taken, so a
-                      real version must strip that before publishing.
+                      JPEG, PNG or WebP up to 4 MB. Your photo stays on your device.
                     </p>
                   </div>
                 </>
@@ -292,16 +290,16 @@ export function CommunityFeed() {
                   <Megaphone size={18} />
                   <p>
                     This is a public lookout post. Leave out frame numbers, home addresses and any
-                    accusation about a person. To keep a private record, use{' '}
-                    <strong>Report a theft</strong>, and report the theft to the police separately.
+                    accusation about a person. For a private record use{' '}
+                    <strong>Report a theft</strong>, and file with the police — that’s what opens a
+                    case.
                   </p>
                 </div>
               )}
               <div className="form-bottom">
-                <span>Visible only in your demo session</span>
+                <span>Keep personal details private</span>
                 <Button type="submit">
-                  {kind === 'stolen' ? 'Post demo alert' : 'Add demo post'}{' '}
-                  <ArrowUpRight size={16} />
+                  {kind === 'stolen' ? 'Publish alert' : 'Publish post'} <ArrowUpRight size={16} />
                 </Button>
               </div>
             </form>
@@ -351,7 +349,7 @@ export function CommunityFeed() {
                         className="delete-post"
                         onClick={() => {
                           deletePost(post.id);
-                          setMessage('Demo post deleted.');
+                          setMessage('Post deleted.');
                         }}
                       >
                         <Trash2 size={14} /> Delete
@@ -386,7 +384,7 @@ export function CommunityFeed() {
               <li>Welcome riders of every pace.</li>
               <li>Keep personal information private.</li>
               <li>Use a stolen bike alert to ask for help, never to accuse someone.</li>
-              <li>A public alert is not a police report. File that separately.</li>
+              <li>Post an alert here and file with the police — they do different jobs.</li>
             </ul>
           </section>
           <div className="small-note">

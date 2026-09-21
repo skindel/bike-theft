@@ -1,9 +1,8 @@
 export const photoMaxBytes = 4 * 1024 * 1024;
 export const photoTypes = ['image/jpeg', 'image/png', 'image/webp'];
 /**
- * Demo-only check. The image never leaves the browser here, so this is a
- * usability guard rather than an authorization boundary. A server upload must
- * re-validate type and size and strip location metadata before publishing.
+ * Client-side guard only. Any server upload path must re-validate type and size
+ * and strip location metadata before publishing.
  */
 export function checkPhoto(file: { type: string; size: number }): string | null {
   if (file.size === 0) return 'That file is empty. Choose another photo.';

@@ -64,13 +64,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Meet the community <ArrowUpRight size={15} />
             </Link>
           </div>
-          <div className="demo-profile">
+          <div className="app-profile">
             <span>CG</span>
             <div>
-              <strong>Hackathon edition</strong>
-              <small>Built for our city</small>
+              <strong>CycleGuard</strong>
+              <small>Maastricht, NL</small>
             </div>
-            <FlaskConical size={16} />
+            <Shield size={16} />
           </div>
         </div>
       </aside>

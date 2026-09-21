@@ -3,7 +3,7 @@ import { Outfit } from 'next/font/google';
 import './globals.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { AppShell } from '@/components/layout/app-shell';
-import { DemoProvider } from '@/lib/demo-provider';
+import { StoreProvider } from '@/lib/store';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -21,9 +21,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" data-scroll-behavior="smooth" className={outfit.variable}>
       <body>
-        <DemoProvider>
+        <StoreProvider>
           <AppShell>{children}</AppShell>
-        </DemoProvider>
+        </StoreProvider>
       </body>
     </html>
   );
