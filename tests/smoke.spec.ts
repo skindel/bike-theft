@@ -71,3 +71,56 @@ test('community posts are session only and filterable', async ({ page }) => {
     true,
   );
 });
+test('a stolen bike alert needs an area and a past date, and can carry a photo', async ({
+  page,
+}) => {
+  await page.goto('/community');
+  await page.getByRole('button', { name: 'Stolen bikes', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /Dark green Gazelle/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sunday miles & good coffee' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Create a post' }).click();
+  await page.getByLabel('Post type').selectOption('stolen');
+  await page.getByLabel('Title', { exact: true }).fill('Blue Batavus missing from Sint Pieter');
+  await page.getByLabel('Message', { exact: true }).fill('Blue city bike with a front basket.');
+  await page.getByRole('button', { name: 'Post demo alert' }).click();
+  await expect(page.getByText('Name an area people can watch')).toBeVisible();
+  await expect(page.getByText('Enter the date it went missing')).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Blue Batavus/ })).toHaveCount(0);
+  await page.getByLabel('Area to watch').fill('Sint Pieter');
+  await page.getByLabel('Last seen on').fill('2099-01-01');
+  await page.getByRole('button', { name: 'Post demo alert' }).click();
+  await expect(page.getByText('Cannot be in the future')).toBeVisible();
+  await page.getByLabel('Last seen on').fill('2025-06-01');
+  await page.setInputFiles('#stolen-photo', {
+    name: 'bike.png',
+    mimeType: 'image/png',
+    // Smallest valid PNG: enough to prove the preview and post image render.
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      'base64',
+    ),
+  });
+  await expect(page.getByRole('img', { name: 'Photo of the missing bike' })).toBeVisible();
+  await page.getByRole('button', { name: 'Post demo alert' }).click();
+  await expect(page.getByRole('heading', { name: /Blue Batavus/ })).toBeVisible();
+  await expect(page.getByText('Watch around Sint Pieter')).toBeVisible();
+  await expect(page.getByText('Last seen 1 Jun 2025')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Photo of the missing bike' })).toBeVisible();
+  await page.getByRole('button', { name: 'Local tips', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /Blue Batavus/ })).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+});
+test('a rejected photo explains why and is not attached', async ({ page }) => {
+  await page.goto('/community');
+  await page.getByRole('button', { name: 'Create a post' }).click();
+  await page.getByLabel('Post type').selectOption('stolen');
+  await page.setInputFiles('#stolen-photo', {
+    name: 'notes.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('not an image'),
+  });
+  await expect(page.getByText('Use a JPEG, PNG or WebP image.')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Photo of the missing bike' })).toHaveCount(0);
+});
