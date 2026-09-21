@@ -31,11 +31,13 @@ function download(report: SavedReport) {
 export function ReportWorkspace() {
   const { reports, saveReport, deleteReport } = useDemo();
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    setError,
+    formState: { errors, isSubmitting },
   } = useForm<TheftReport>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
@@ -50,8 +52,28 @@ export function ReportWorkspace() {
       shareAggregate: false,
     },
   });
-  function onSubmit(values: TheftReport) {
-    const report = saveReport(values);
+  async function onSubmit(values: TheftReport) {
+    setSubmitError(null);
+    const response = await fetch('/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...values,
+        lastSeen: new Date(values.lastSeen).toISOString(),
+        discovered: new Date(values.discovered).toISOString(),
+      }),
+    });
+    const result = (await response.json()) as {
+      report?: Pick<SavedReport, 'id' | 'createdAt' | 'location' | 'neighbourhood'>;
+      error?: { message?: string; fieldErrors?: { location?: string[] } };
+    };
+    if (!response.ok || !result.report) {
+      const locationError = result.error?.fieldErrors?.location?.[0];
+      if (locationError) setError('location', { message: locationError });
+      setSubmitError(result.error?.message ?? 'We could not save the report. Please try again.');
+      return;
+    }
+    const report = saveReport(values, result.report);
     setSavedId(report.id);
     reset();
   }
@@ -76,15 +98,15 @@ export function ReportWorkspace() {
       <div className="notice">
         <ShieldCheck size={19} />
         <p>
-          <strong>Your details stay in this tab.</strong> This demo doesn’t send or store reports on
-          a server. Refreshing clears them. Use sample information.
+          <strong>Your report is stored securely.</strong> We validate Maastricht addresses and save
+          the report in Supabase. It is not submitted to the police.
         </p>
       </div>
       {savedId && (
         <div className="success-notice" role="status">
           <Check size={20} />
           <div>
-            <strong>Your demo report is ready.</strong>
+            <strong>Your report has been saved.</strong>
             <p>Download your summary below. Nothing has been submitted to the police.</p>
           </div>
           <Button
@@ -159,7 +181,7 @@ export function ReportWorkspace() {
               Location in Maastricht <span className="required">*</span>
               <input
                 {...register('location')}
-                placeholder="Street, landmark or parking location"
+                placeholder="Street and house number, e.g. Vrijthof 1"
                 aria-invalid={!!errors.location}
               />
               {error('location')}
@@ -193,19 +215,27 @@ export function ReportWorkspace() {
             </label>
           </div>
           <p className="form-hint">
-            Times use your device’s local timezone. Enter Maastricht local times for this demo.
+            Enter a complete Maastricht address. We verify it against Dutch address records and add
+            its neighbourhood automatically. Times are interpreted in your device’s timezone.
           </p>
           <label className="checkbox-label">
             <input type="checkbox" {...register('shareAggregate')} />
             <span>
               I would like to contribute anonymous area-level information to the map.
-              <small>Preference only in this demo. Reports do not change the map.</small>
+              <small>
+                Your preference is stored with the report; it does not immediately change the map.
+              </small>
             </span>
           </label>
+          {submitError && (
+            <div className="field-error" role="alert">
+              {submitError}
+            </div>
+          )}
           <div className="form-bottom">
             <span>* Required fields</span>
-            <Button type="submit">
-              Prepare demo report <ArrowUpRight size={17} />
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Validating and saving…' : 'Save report'} <ArrowUpRight size={17} />
             </Button>
           </div>
         </form>
@@ -258,8 +288,8 @@ export function ReportWorkspace() {
       <section id="your-reports" className="panel saved-reports">
         <div className="panel-heading">
           <div>
-            <div className="eyebrow">THIS SESSION ONLY</div>
-            <h2>Your prepared reports</h2>
+            <div className="eyebrow">SAVED REPORTS</div>
+            <h2>Your report summaries</h2>
           </div>
           <span className="count-pill">{reports.length}</span>
         </div>
@@ -278,7 +308,8 @@ export function ReportWorkspace() {
                   {report.color} {report.brand}
                 </strong>
                 <small>
-                  {report.location} · {report.type}
+                  {report.location}
+                  {report.neighbourhood ? ` · ${report.neighbourhood}` : ''} · {report.type}
                 </small>
               </div>
               <Button variant="secondary" onClick={() => download(report)}>
@@ -286,7 +317,7 @@ export function ReportWorkspace() {
               </Button>
               <button
                 className="icon-button"
-                aria-label={`Delete report for ${report.brand}`}
+                aria-label={`Remove report summary for ${report.brand}`}
                 onClick={() => {
                   deleteReport(report.id);
                   if (savedId === report.id) setSavedId(null);

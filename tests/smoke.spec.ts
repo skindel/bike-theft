@@ -15,22 +15,39 @@ test('map filters and navigation', async ({ page }) => {
     true,
   );
 });
-test('prepare, download, keep across navigation, and delete a report', async ({ page }) => {
+test('validate, save, download, keep across navigation, and remove a report summary', async ({
+  page,
+}) => {
+  await page.route('**/api/reports', async (route) => {
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        report: {
+          id: '42',
+          createdAt: '2025-01-01T11:01:00.000Z',
+          location: 'Markt 1, 6211CH Maastricht',
+          neighbourhood: 'Binnenstad',
+        },
+      }),
+    });
+  });
   await page.goto('/reports');
   await page.getByLabel('Brand', { exact: false }).fill('Gazelle');
   await page.getByLabel('Color', { exact: false }).fill('Blue');
-  await page.getByLabel('Location in Maastricht', { exact: false }).fill('Markt');
+  await page.getByLabel('Location in Maastricht', { exact: false }).fill('Markt 1');
   await page.getByLabel('Last seen', { exact: false }).fill('2025-01-01T10:00');
   await page.getByLabel('Discovered missing', { exact: false }).fill('2025-01-01T11:00');
-  await page.getByRole('button', { name: 'Prepare demo report' }).click();
-  await expect(page.getByText('Your demo report is ready.')).toBeVisible();
+  await page.getByRole('button', { name: 'Save report' }).click();
+  await expect(page.getByText('Your report has been saved.')).toBeVisible();
+  await expect(page.getByText(/Binnenstad/)).toBeVisible();
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download summary' }).click();
   expect((await download).suggestedFilename()).toContain('bikewatch-report');
   await page.getByRole('link', { name: 'Community', exact: true }).click();
   await page.getByRole('link', { name: 'Report a theft', exact: true }).click();
   await expect(page.getByText('Blue Gazelle')).toBeVisible();
-  await page.getByRole('button', { name: 'Delete report for Gazelle' }).click();
+  await page.getByRole('button', { name: 'Remove report summary for Gazelle' }).click();
   await expect(page.getByText('No reports yet.', { exact: false })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,

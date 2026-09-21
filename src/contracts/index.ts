@@ -55,6 +55,7 @@ export type TheftReport = z.infer<typeof reportSchema>;
 export interface SavedReport extends TheftReport {
   id: string;
   createdAt: string;
+  neighbourhood?: string;
 }
 export const postSchema = z.object({
   title: requiredText('Title', 100),

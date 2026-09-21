@@ -3,6 +3,7 @@ node_modules/
 .env*
 !.env.example
 *.tsbuildinfo
+public/maplibre/
 playwright-report/
 test-results/
 .DS_Store

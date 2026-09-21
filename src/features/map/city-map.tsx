@@ -1,23 +1,33 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
+import { MapboxOverlay } from '@deck.gl/mapbox';
 import type { ParkingLocation } from '@/contracts';
 import { parking, zones } from './fixtures';
 import { activityBand } from './risk';
+import { theftHeatmapLayer, type TheftHeatPoint } from './theft-heatmap';
 const colors = { low: '#2DD4BF', medium: '#FACC15', high: '#FB923C', unknown: '#94A3B8' };
+// MapLibre cannot resolve its own worker module through the bundler, and without a worker
+// no vector tile is ever parsed. scripts/copy-maplibre-worker.mjs puts it under public/.
+maplibregl.config.WORKER_URL = '/maplibre/maplibre-gl-worker.mjs';
 export function CityMap({
   selected,
   onSelect,
   showZones,
+  showHeatmap,
+  heatPoints,
   visibleIds,
 }: {
   selected: ParkingLocation | null;
   onSelect: (id: string) => void;
   showZones: boolean;
+  showHeatmap: boolean;
+  heatPoints: TheftHeatPoint[];
   visibleIds: string[];
 }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const overlayRef = useRef<MapboxOverlay | null>(null);
   const markers = useRef<{ id: string; marker: maplibregl.Marker }[]>([]);
   const selectRef = useRef(onSelect);
   const [status, setStatus] = useState('Loading Maastricht map…');
@@ -37,11 +47,13 @@ export function CityMap({
         zoom: 13.8,
         minZoom: 11,
         maxZoom: 18,
-        style:
-          process.env.NEXT_PUBLIC_MAP_STYLE_URL || 'https://tiles.openfreemap.org/styles/dark',
+        style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || 'https://tiles.openfreemap.org/styles/dark',
       });
       mapRef.current = map;
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+      const overlay = new MapboxOverlay({ interleaved: false, layers: [] });
+      overlayRef.current = overlay;
+      map.addControl(overlay as unknown as maplibregl.IControl, 'top-left');
       map.on('error', () =>
         setStatus('Map tiles unavailable. You can still explore the parking list.'),
       );
@@ -95,6 +107,8 @@ export function CityMap({
       window.clearTimeout(loadingTimeout);
       markers.current.forEach(({ marker }) => marker.remove());
       markers.current = [];
+      overlayRef.current?.finalize();
+      overlayRef.current = null;
       mapRef.current = null;
       map?.remove();
     };
@@ -113,6 +127,9 @@ export function CityMap({
       map.off('style.load', apply);
     };
   }, [showZones]);
+  useEffect(() => {
+    overlayRef.current?.setProps({ layers: [theftHeatmapLayer(heatPoints, showHeatmap)] });
+  }, [heatPoints, showHeatmap]);
   useEffect(() => {
     markers.current.forEach(({ id, marker }) => {
       marker.getElement().style.display = visibleIds.includes(id) ? '' : 'none';
