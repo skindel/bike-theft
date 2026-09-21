@@ -43,7 +43,7 @@ export function MapExplorer() {
   const [query, setQuery] = useState('');
   const [covered, setCovered] = useState(false);
   const [showNeighbourhoods, setShowNeighbourhoods] = useState(true);
-  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(false);
   const [heat, setHeat] = useState<HeatSourceResult | null>(null);
   const [areas, setAreas] = useState<NeighbourhoodState>({ status: 'loading' });
   const [hovered, setHovered] = useState<Hovered | null>(null);
@@ -220,7 +220,10 @@ export function MapExplorer() {
           )}
           <div className="map-legend">
             <strong>
-              Thefts {perLabel(ready?.denominator ?? null)} · 2024 <Info size={13} />
+              {ready?.denominator
+                ? `Thefts ${perLabel(ready.denominator)}`
+                : 'Recorded theft activity'}{' '}
+              · 2024 <Info size={13} />
             </strong>
             {ready && ready.max !== null ? (
               <>
@@ -245,7 +248,9 @@ export function MapExplorer() {
                     ? 'Loading neighbourhoods…'
                     : areas.status === 'error'
                       ? areas.message
-                      : 'No theft statistics connected yet'}
+                      : ready?.reason === 'missing_credentials'
+                        ? 'Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to .env.local, then restart npm run dev.'
+                        : 'No theft statistics connected yet'}
                 </span>
               </div>
             )}

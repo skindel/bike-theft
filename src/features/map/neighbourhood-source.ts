@@ -16,5 +16,6 @@ export async function loadNeighbourhoods(signal?: AbortSignal): Promise<Neighbou
     matched: body.matched,
     connected: body.connected,
     period: '2024',
+    reason: body.reason ?? null,
   };
 }

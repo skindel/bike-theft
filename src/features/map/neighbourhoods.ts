@@ -16,6 +16,7 @@ export type NeighbourhoodData = {
   matched: number;
   connected: boolean;
   period: string | null;
+  reason?: 'missing_credentials' | 'ok' | null;
 };
 /** Sequential ramp, interpolated linearly. See RISK_METHOD.md for how a colour maps to a value. */
 const ramp: [number, number, number][] = [

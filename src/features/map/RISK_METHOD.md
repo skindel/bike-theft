@@ -4,7 +4,7 @@
 
 Each filled area is one official CBS _buurt_ (neighbourhood) for the municipality of Maastricht, taken from the CBS Wijk- en Buurtkaart 2024 through the PDOK WFS service. Water-only buurten are excluded. The geometry is used at its published resolution and is only rounded to five decimal places (roughly one metre) to reduce the payload. No boundary is invented, simplified into a different shape, or interpolated.
 
-The fill colour encodes the _count per 100_ value held in the Supabase table `neighbourhood-data-2024`, joined to the boundary by neighbourhood name (case-, accent- and whitespace-insensitive). Nothing is computed from individual coordinates, so no false street-level precision is implied.
+The fill colour encodes the **count per 1,000** value held in the Supabase table `neighbourhood-data-2024`, joined to the boundary by neighbourhood name (case-, accent- and whitespace-insensitive). The route looks for `count per 1000`, `count_per_1000`, or `count-per-1000`. Nothing is computed from individual coordinates, so no false street-level precision is implied.
 
 ## Colour scale
 

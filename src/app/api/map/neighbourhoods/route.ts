@@ -1,4 +1,5 @@
 import type { Feature, MultiPolygon, Polygon, Position } from 'geojson';
+import { resolveColumns, type CountRow } from '@/features/map/neighbourhood-columns';
 import type { NeighbourhoodFeature } from '@/features/map/neighbourhoods';
 
 const PDOK_WFS = 'https://service.pdok.nl/cbs/wijkenbuurten/2024/wfs/v1_0';
@@ -7,23 +8,10 @@ const BBOX = '50.79,5.62,50.90,5.78,urn:ogc:def:crs:EPSG::4326';
 const TABLE = 'neighbourhood-data-2024';
 const BOUNDARY_SOURCE = 'CBS Wijk- en Buurtkaart 2024 via PDOK';
 
-/**
- * The table was created outside this repository and its column names are not frozen yet, so
- * they are resolved from the returned row instead of hard-coded. Replace this with the agreed
- * column names once the schema is fixed.
- */
-const patterns = {
-  name: /^(neighbourhood|neighborhood|buurt(naam)?|name|area)$/i,
-  count: /^(count|counts|thefts?|incidents?|total|aantal)$/i,
-  /** Captures the base, so "count_per_1000" is never presented as a per-100 figure. */
-  rate: /per[_\s-]?(\d+)/i,
-};
-
 type CbsFeature = Feature<
   Polygon | MultiPolygon,
   { buurtcode: string; buurtnaam: string; gemeentenaam: string; water?: string }
 >;
-type CountRow = Record<string, unknown>;
 
 function apiError(status: number, code: string, message: string) {
   return Response.json({ error: { code, message } }, { status });
@@ -54,19 +42,6 @@ function toNumber(value: unknown) {
   return null;
 }
 
-function resolveColumns(row: CountRow) {
-  const keys = Object.keys(row);
-  const find = (pattern: RegExp) => keys.find((key) => pattern.test(key)) ?? null;
-  const rate = find(patterns.rate);
-  return {
-    name: find(patterns.name),
-    count: find(patterns.count),
-    rate,
-    denominator: rate ? Number(rate.match(patterns.rate)![1]) : null,
-    available: keys,
-  };
-}
-
 async function loadBoundaries() {
   const params = new URLSearchParams({
     service: 'WFS',
@@ -92,16 +67,22 @@ async function loadBoundaries() {
 }
 
 async function loadCounts() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return null;
-  const response = await fetch(`${url}/rest/v1/${TABLE}?select=*`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}` },
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+  if (!url || !key) return { rows: null, reason: 'missing_credentials' as const };
+  const response = await fetch(`${url.replace(/\/$/, '')}/rest/v1/${TABLE}?select=*`, {
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      Accept: 'application/json',
+    },
     cache: 'no-store',
     signal: AbortSignal.timeout(10000),
   });
-  if (!response.ok) throw new Error(`Supabase returned ${response.status}`);
-  return (await response.json()) as CountRow[];
+  if (!response.ok) {
+    throw new Error(`Supabase returned ${response.status} for ${TABLE}`);
+  }
+  return { rows: (await response.json()) as CountRow[], reason: 'ok' as const };
 }
 
 export async function GET() {
@@ -119,23 +100,24 @@ export async function GET() {
     return apiError(503, 'BOUNDARY_SOURCE_EMPTY', 'No Maastricht neighbourhoods were returned.');
   }
 
-  let rows: CountRow[] | null;
+  let counts: Awaited<ReturnType<typeof loadCounts>>;
   try {
-    rows = await loadCounts();
+    counts = await loadCounts();
   } catch {
     return apiError(
       503,
       'STATISTICS_UNAVAILABLE',
-      'Neighbourhood theft statistics are temporarily unavailable.',
+      'Neighbourhood theft statistics are temporarily unavailable. Check that the anon key can SELECT from neighbourhood-data-2024.',
     );
   }
+  const rows = counts.rows;
 
   const columns = rows?.length ? resolveColumns(rows[0]) : null;
   if (rows?.length && columns && (!columns.name || !columns.rate)) {
     return apiError(
       500,
       'UNEXPECTED_SCHEMA',
-      `Could not find a neighbourhood name column and a "per <number>" column in "${TABLE}". Columns present: ${columns.available.join(', ')}.`,
+      `Could not find a neighbourhood name column and a count-per-1000 column in "${TABLE}". Columns present: ${columns.available.join(', ')}.`,
     );
   }
 
@@ -177,6 +159,7 @@ export async function GET() {
     matched,
     total: features.length,
     connected: rows !== null,
+    reason: counts.reason,
     boundarySource: BOUNDARY_SOURCE,
     columns: columns && { name: columns.name, count: columns.count, rate: columns.rate },
   });
