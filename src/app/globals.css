@@ -1301,6 +1301,99 @@ input[aria-invalid='true'] {
   background: #1A1612;
   color: #F59E0B;
 }
+.post-tag.stolen {
+  background: #1F1315;
+  color: #FF786A;
+}
+.avatar-alert {
+  background: #1F1315;
+  color: #FF786A;
+}
+.post-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 10px;
+  color: #CBD5E1;
+  margin-top: 12px;
+}
+.post-facts span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.post-facts span:before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #FC5145;
+}
+.post-photo {
+  margin: 16px 0 0;
+}
+.post-photo img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border: 1px solid #1D2939;
+  border-radius: 9px;
+  background: #0B111B;
+}
+.photo-field {
+  margin-top: 15px;
+}
+.photo-field > label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 9px;
+}
+.photo-field input[type='file'] {
+  font-size: 11px;
+  padding: 10px;
+  color: #CBD5E1;
+}
+.photo-field input[type='file']::file-selector-button {
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 11px;
+  padding: 7px 11px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #182231;
+  color: #F8FAFC;
+  cursor: pointer;
+}
+.photo-field .form-hint {
+  font-size: 10px;
+  line-height: 1.7;
+}
+.photo-preview {
+  display: flex;
+  align-items: flex-end;
+  gap: 13px;
+  margin-top: 12px;
+}
+.photo-preview img {
+  width: 120px;
+  height: 86px;
+  object-fit: cover;
+  border: 1px solid #1D2939;
+  border-radius: 8px;
+  background: #0B111B;
+}
+.photo-preview button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #FF786A;
+}
+.compose-note {
+  margin: 18px 0 0;
+}
 .post-card h2 {
   font-size: 20px;
   margin-top: 19px;
