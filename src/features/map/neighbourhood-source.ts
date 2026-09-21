@@ -12,6 +12,7 @@ export async function loadNeighbourhoods(signal?: AbortSignal): Promise<Neighbou
   return {
     features: body.features,
     max: body.max,
+    denominator: body.denominator,
     matched: body.matched,
     connected: body.connected,
     period: '2024',

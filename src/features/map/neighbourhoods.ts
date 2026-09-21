@@ -3,13 +3,16 @@ export type NeighbourhoodProperties = {
   code: string;
   name: string;
   count: number | null;
-  per100: number | null;
+  /** Thefts per `denominator`, straight from the source table. */
+  rate: number | null;
 };
 export type NeighbourhoodFeature = Feature<Polygon | MultiPolygon, NeighbourhoodProperties>;
 export type NeighbourhoodData = {
   features: NeighbourhoodFeature[];
-  /** Highest per-100 value present, and the top of the colour scale. Null when no data joined. */
+  /** Highest rate present, and the top of the colour scale. Null when no data joined. */
   max: number | null;
+  /** Read from the source column name, so the legend cannot claim the wrong base. */
+  denominator: number | null;
   matched: number;
   connected: boolean;
   period: string | null;
@@ -23,7 +26,7 @@ const ramp: [number, number, number][] = [
   [225, 29, 72],
 ];
 const noData: [number, number, number, number] = [148, 163, 184, 60];
-export function colorForPer100(
+export function colorForRate(
   value: number | null,
   max: number | null,
 ): [number, number, number, number] {

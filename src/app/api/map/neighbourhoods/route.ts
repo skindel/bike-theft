@@ -15,7 +15,8 @@ const BOUNDARY_SOURCE = 'CBS Wijk- en Buurtkaart 2024 via PDOK';
 const patterns = {
   name: /^(neighbourhood|neighborhood|buurt(naam)?|name|area)$/i,
   count: /^(count|counts|thefts?|incidents?|total|aantal)$/i,
-  per100: /per.?100/i,
+  /** Captures the base, so "count_per_1000" is never presented as a per-100 figure. */
+  rate: /per[_\s-]?(\d+)/i,
 };
 
 type CbsFeature = Feature<
@@ -56,10 +57,12 @@ function toNumber(value: unknown) {
 function resolveColumns(row: CountRow) {
   const keys = Object.keys(row);
   const find = (pattern: RegExp) => keys.find((key) => pattern.test(key)) ?? null;
+  const rate = find(patterns.rate);
   return {
     name: find(patterns.name),
     count: find(patterns.count),
-    per100: find(patterns.per100),
+    rate,
+    denominator: rate ? Number(rate.match(patterns.rate)![1]) : null,
     available: keys,
   };
 }
@@ -128,11 +131,11 @@ export async function GET() {
   }
 
   const columns = rows?.length ? resolveColumns(rows[0]) : null;
-  if (rows?.length && columns && (!columns.name || !columns.per100)) {
+  if (rows?.length && columns && (!columns.name || !columns.rate)) {
     return apiError(
       500,
       'UNEXPECTED_SCHEMA',
-      `Could not find a neighbourhood name and a per-100 column in "${TABLE}". Columns present: ${columns.available.join(', ')}.`,
+      `Could not find a neighbourhood name column and a "per <number>" column in "${TABLE}". Columns present: ${columns.available.join(', ')}.`,
     );
   }
 
@@ -148,17 +151,17 @@ export async function GET() {
   let max: number | null = null;
   const features: NeighbourhoodFeature[] = boundaries.map((feature) => {
     const row = byName.get(normalise(feature.properties.buurtnaam));
-    const per100 = row && columns?.per100 ? toNumber(row[columns.per100]) : null;
+    const rate = row && columns?.rate ? toNumber(row[columns.rate]) : null;
     const count = row && columns?.count ? toNumber(row[columns.count]) : null;
     if (row) matched += 1;
-    if (per100 !== null) max = max === null ? per100 : Math.max(max, per100);
+    if (rate !== null) max = max === null ? rate : Math.max(max, rate);
     return {
       type: 'Feature',
       properties: {
         code: feature.properties.buurtcode,
         name: feature.properties.buurtnaam,
         count,
-        per100,
+        rate,
       },
       geometry: {
         type: feature.geometry.type,
@@ -170,10 +173,11 @@ export async function GET() {
   return Response.json({
     features,
     max,
+    denominator: columns?.denominator ?? null,
     matched,
     total: features.length,
     connected: rows !== null,
     boundarySource: BOUNDARY_SOURCE,
-    columns: columns && { name: columns.name, count: columns.count, per100: columns.per100 },
+    columns: columns && { name: columns.name, count: columns.count, rate: columns.rate },
   });
 }

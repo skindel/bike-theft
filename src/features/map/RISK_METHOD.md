@@ -8,14 +8,14 @@ The fill colour encodes the _count per 100_ value held in the Supabase table `ne
 
 ## Colour scale
 
-The scale is linear from 0 to the highest per-100 value present in the response, interpolated across five stops: teal, yellow, orange, salmon, crimson. The legend prints both ends of that range, so a colour can be read back to a number. The scale is relative to the current data: if the maximum changes, every colour changes with it.
+The scale is linear from 0 to the highest rate present in the response, interpolated across five stops: teal, yellow, orange, salmon, crimson. The legend prints both ends of that range, so a colour can be read back to a number. The scale is relative to the current data: if the maximum changes, every colour changes with it.
 
 A neighbourhood with no matching row, or a non-numeric value, is drawn in flat grey and labelled "No data" in the legend. Grey is not zero and zero is not safety.
 
 ## Limits that must be stated alongside the map
 
-- This is **recorded theft activity per 100**, not a probability of theft and not a calibrated risk. It has no time horizon attached.
-- The denominator of the per-100 figure comes from the source table and must be confirmed and labelled precisely (per 100 residents, per 100 bicycles, and per 100 households are not interchangeable) before this is shown to the public.
+- This is a **recorded theft rate**, not a probability of theft and not a calibrated risk. It has no time horizon attached.
+- Only the base of the rate is derived from the column name. What is being counted in the denominator still has to be confirmed and labelled precisely, because per 1,000 residents, per 1,000 bicycles and per 1,000 households are not interchangeable.
 - Reporting rates and bicycle throughput differ sharply between a station area, a shopping centre and a residential street. A lighter neighbourhood may simply be under-reported or have fewer bikes present.
 - All areas must cover the same period. The join does not check periods, so the table must hold one comparable period per row.
 - Community self-reports are not merged into this layer. Official statistics and user submissions must stay distinguishable, and small counts need suppression before any opt-in reports contribute.

@@ -2,7 +2,7 @@ import { GeoJsonLayer } from '@deck.gl/layers';
 import type { PickingInfo } from '@deck.gl/core';
 import type { Feature, Geometry } from 'geojson';
 import {
-  colorForPer100,
+  colorForRate,
   type NeighbourhoodFeature,
   type NeighbourhoodProperties,
 } from './neighbourhoods';
@@ -27,7 +27,7 @@ export function neighbourhoodLayer({
     pickable: true,
     autoHighlight: true,
     highlightColor: [255, 255, 255, 60],
-    getFillColor: (feature) => colorForPer100(feature.properties.per100, max),
+    getFillColor: (feature) => colorForRate(feature.properties.rate, max),
     getLineColor: [226, 232, 240, 130],
     lineWidthUnits: 'pixels',
     getLineWidth: 1,

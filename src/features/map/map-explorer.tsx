@@ -30,10 +30,14 @@ const CityMap = dynamic(() => import('./city-map').then((mod) => mod.CityMap), {
   ssr: false,
   loading: () => <div className="map-status">Loading map…</div>,
 });
-type Hovered = { name: string; count: number | null; per100: number | null; x: number; y: number };
-function formatPer100(value: number | null) {
+type Hovered = { name: string; count: number | null; rate: number | null; x: number; y: number };
+function formatRate(value: number | null) {
   if (value === null) return 'no data';
   return value.toLocaleString('en-GB', { maximumFractionDigits: 2 });
+}
+/** The base comes from the source column, so an unknown base is never guessed. */
+function perLabel(denominator: number | null) {
+  return denominator === null ? 'per unit' : `per ${denominator.toLocaleString('en-GB')}`;
 }
 export function MapExplorer() {
   const [query, setQuery] = useState('');
@@ -68,8 +72,8 @@ export function MapExplorer() {
   }, []);
   const onHoverNeighbourhood = useCallback((info: NeighbourhoodPick) => {
     if (!info.object) return setHovered(null);
-    const { name, count, per100 } = info.object.properties;
-    setHovered({ name, count, per100, x: info.x, y: info.y });
+    const { name, count, rate } = info.object.properties;
+    setHovered({ name, count, rate, x: info.x, y: info.y });
   }, []);
   const heatPoints = heat?.points ?? noPoints;
   const ready = areas.status === 'ready' ? areas.data : null;
@@ -77,8 +81,8 @@ export function MapExplorer() {
   const ranked = useMemo(
     () =>
       features
-        .filter((feature) => feature.properties.per100 !== null)
-        .sort((a, b) => (b.properties.per100 ?? 0) - (a.properties.per100 ?? 0))
+        .filter((feature) => feature.properties.rate !== null)
+        .sort((a, b) => (b.properties.rate ?? 0) - (a.properties.rate ?? 0))
         .slice(0, 6),
     [features],
   );
@@ -208,13 +212,15 @@ export function MapExplorer() {
           {hovered && (
             <div className={styles.tooltip} style={{ left: hovered.x + 14, top: hovered.y + 14 }}>
               <strong>{hovered.name}</strong>
-              <span>{formatPer100(hovered.per100)} per 100</span>
+              <span>
+                {formatRate(hovered.rate)} {perLabel(ready?.denominator ?? null)}
+              </span>
               {hovered.count !== null && <span>{hovered.count} recorded</span>}
             </div>
           )}
           <div className="map-legend">
             <strong>
-              Thefts per 100 · 2024 <Info size={13} />
+              Thefts {perLabel(ready?.denominator ?? null)} · 2024 <Info size={13} />
             </strong>
             {ready && ready.max !== null ? (
               <>
@@ -225,7 +231,7 @@ export function MapExplorer() {
                 />
                 <div className={styles.scaleLabels}>
                   <span>0</span>
-                  <span>{formatPer100(ready.max)}</span>
+                  <span>{formatRate(ready.max)}</span>
                 </div>
                 <div className={styles.noDataKey}>
                   <i />
@@ -341,7 +347,7 @@ export function MapExplorer() {
           <div className="eyebrow">UNDERSTAND THE LAYER</div>
           <h2>Activity isn’t probability.</h2>
           <p>
-            Darker shading means more recorded thefts per 100 in that neighbourhood, compared across
+            Darker shading means a higher recorded theft rate in that neighbourhood, compared across
             one period and the same official boundaries. Reporting rates and how many bikes pass
             through differ by area, so a lighter neighbourhood never guarantees a bike’s safety.
           </p>
@@ -350,7 +356,9 @@ export function MapExplorer() {
           {ranked.map((feature) => (
             <div key={feature.properties.code}>
               <strong>{feature.properties.name}</strong>
-              <span>{formatPer100(feature.properties.per100)} per 100</span>
+              <span>
+                {formatRate(feature.properties.rate)} {perLabel(ready?.denominator ?? null)}
+              </span>
             </div>
           ))}
           {ranked.length === 0 && (
