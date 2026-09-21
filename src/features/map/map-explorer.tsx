@@ -45,12 +45,8 @@ export function MapExplorer() {
   const [query, setQuery] = useState('');
   const [covered, setCovered] = useState(false);
   const [showNeighbourhoods, setShowNeighbourhoods] = useState(true);
-<<<<<<< HEAD
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [showParkings, setShowParkings] = useState(true);
-=======
-  const [showHeatmap, setShowHeatmap] = useState(false);
->>>>>>> newMAP
   const [heat, setHeat] = useState<HeatSourceResult | null>(null);
   const [areas, setAreas] = useState<NeighbourhoodState>({ status: 'loading' });
   const [parkingSource, setParkingSource] = useState<ParkingSourceResult | null>(null);
