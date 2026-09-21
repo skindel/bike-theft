@@ -5,7 +5,10 @@ import { initialPosts } from '@/features/community/fixtures';
 interface DemoStore {
   reports: SavedReport[];
   posts: CommunityPost[];
-  saveReport: (report: TheftReport) => SavedReport;
+  saveReport: (
+    report: TheftReport,
+    persisted?: Pick<SavedReport, 'id' | 'createdAt' | 'location' | 'neighbourhood'>,
+  ) => SavedReport;
   deleteReport: (id: string) => void;
   addPost: (post: PostInput) => void;
   deletePost: (id: string) => void;
@@ -16,8 +19,16 @@ const Context = createContext<DemoStore | null>(null);
 export function DemoProvider({ children }: { children: ReactNode }) {
   const [reports, setReports] = useState<SavedReport[]>([]);
   const [posts, setPosts] = useState(initialPosts);
-  function saveReport(input: TheftReport) {
-    const report = { ...input, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  function saveReport(
+    input: TheftReport,
+    persisted?: Pick<SavedReport, 'id' | 'createdAt' | 'location' | 'neighbourhood'>,
+  ) {
+    const report = {
+      ...input,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      ...persisted,
+    };
     setReports((old) => [report, ...old]);
     return report;
   }
