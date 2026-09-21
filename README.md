@@ -17,7 +17,7 @@ Open http://localhost:3000. No account, API key, or `.env` file is required. The
 
 1. On **Explore map**, search “station”, select a parking result, try “Covered only”, and toggle the illustrative activity zones.
 2. On **Report a theft**, enter sample bike/location details and past dates. Prepare the report, download its text summary, and delete it when finished.
-3. On **Community**, filter local tips/meetups, create a sample post, and delete your own post.
+3. On **Community**, filter local tips/meetups/stolen bikes, create a sample post, and delete your own post. A stolen bike alert asks for an area and a past date, and accepts an optional photo that stays in the browser.
 4. Navigate between pages: reports and posts survive client navigation. Refresh: they disappear. There is deliberately no localStorage or server persistence of personal information.
 
 The map is real geography, but the zone boundaries, incident counts, parking coordinates/attributes, and community content are illustrative. Nothing is a live safety assessment. The report summary is not a police submission. Use sample personal data.
@@ -98,7 +98,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The unit tests cover the illustrative risk thresholds, coordinates and report validation. Browser tests cover map search, report creation/download/deletion, navigation state, community filtering/posts and mobile overflow. They don't assert the availability of a third-party basemap or any production authorization behavior.
+The unit tests cover the illustrative risk thresholds, coordinates, report validation and community photo checks. Browser tests cover map search, report creation/download/deletion, navigation state, community filtering/posts, stolen bike alerts with a photo and mobile overflow. They don't assert the availability of a third-party basemap or any production authorization behavior.
 
 Optional: `npm run format` formats the repo; `npm run format:check` verifies formatting.
 
@@ -115,3 +115,5 @@ Before replacing fixtures, inspect [police open data](https://www.politie.nl/inf
 ## Deliberately unfinished
 
 Supabase connection and authentication, real theft imports, verified parking attributes, file uploads, location picking, report editing, persistent/public community posting, structured meetup dates/RSVPs, Dutch translation, value-aware guidance, PDF formatting, and police integration. The basic form and text download demonstrate the direction without pretending those services exist.
+
+Stolen bike alerts are part of that unfinished list. The photo is read into memory with `FileReader` and never uploaded, so the type/size check in `src/features/community/photo.ts` is a usability guard, not an authorization boundary. Before these alerts become public, they need server-side validation, private Storage with signed URLs, EXIF/location-metadata stripping, rate limits, a flag-and-hide workflow, and moderation fields the author cannot set. A public alert must also stay separate from the private theft report and from the map aggregates.

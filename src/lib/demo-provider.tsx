@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { SavedReport, TheftReport, CommunityPost, PostInput } from '@/contracts';
+import type { SavedReport, TheftReport, CommunityPost, PostInput, PostPhoto } from '@/contracts';
 import { initialPosts } from '@/features/community/fixtures';
 interface DemoStore {
   reports: SavedReport[];
@@ -10,7 +10,7 @@ interface DemoStore {
     persisted?: Pick<SavedReport, 'id' | 'createdAt' | 'location' | 'neighbourhood'>,
   ) => SavedReport;
   deleteReport: (id: string) => void;
-  addPost: (post: PostInput) => void;
+  addPost: (post: PostInput, photo?: PostPhoto) => void;
   deletePost: (id: string) => void;
 }
 const Context = createContext<DemoStore | null>(null);
@@ -32,10 +32,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setReports((old) => [report, ...old]);
     return report;
   }
-  function addPost(input: PostInput) {
+  function addPost(input: PostInput, photo?: PostPhoto) {
     setPosts((old) => [
       {
         ...input,
+        photo,
         id: crypto.randomUUID(),
         author: 'You · demo',
         initials: 'YO',

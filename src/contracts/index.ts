@@ -57,16 +57,46 @@ export interface SavedReport extends TheftReport {
   createdAt: string;
   neighbourhood?: string;
 }
-export const postSchema = z.object({
-  title: requiredText('Title', 100),
-  body: requiredText('Message', 1200),
-  kind: z.enum(['post', 'meetup']),
-});
+export const postKinds = ['post', 'meetup', 'stolen'] as const;
+export type PostKind = (typeof postKinds)[number];
+export const postSchema = z
+  .object({
+    title: requiredText('Title', 100),
+    body: requiredText('Message', 1200),
+    kind: z.enum(postKinds),
+    // Area and date describe a public lookout request, not the precise theft
+    // location held in a private report.
+    area: z.string().trim().max(120).optional(),
+    lastSeenOn: z.string().trim().max(40).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.kind !== 'stolen') return;
+    if (!value.area)
+      ctx.addIssue({ code: 'custom', path: ['area'], message: 'Name an area people can watch' });
+    if (!value.lastSeenOn) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['lastSeenOn'],
+        message: 'Enter the date it went missing',
+      });
+      return;
+    }
+    const lastSeen = Date.parse(value.lastSeenOn);
+    if (!Number.isFinite(lastSeen))
+      ctx.addIssue({ code: 'custom', path: ['lastSeenOn'], message: 'Enter a valid date' });
+    else if (lastSeen > Date.now())
+      ctx.addIssue({ code: 'custom', path: ['lastSeenOn'], message: 'Cannot be in the future' });
+  });
 export type PostInput = z.infer<typeof postSchema>;
+export interface PostPhoto {
+  src: string;
+  alt: string;
+}
 export interface CommunityPost extends PostInput {
   id: string;
   author: string;
   initials: string;
   date: string;
   own?: boolean;
+  photo?: PostPhoto;
 }

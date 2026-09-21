@@ -1,5 +1,30 @@
 import type { CommunityPost } from '@/contracts';
+// A drawing, not a photograph: the sample post shows the layout without
+// presenting an invented theft as a real one.
+const sampleIllustration = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 170" role="img">
+    <rect width="320" height="170" fill="#151c27"/>
+    <g fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round">
+      <circle cx="92" cy="112" r="30"/><circle cx="228" cy="112" r="30"/>
+      <path d="M92 112 148 62h44l36 50M148 62l24 50H92M192 62h22"/>
+    </g>
+    <text x="160" y="157" fill="#64748b" font-family="sans-serif" font-size="11"
+      text-anchor="middle">Illustration — sample post</text>
+  </svg>`,
+)}`;
 export const initialPosts: CommunityPost[] = [
+  {
+    id: 'sample-4',
+    kind: 'stolen',
+    author: 'Jonas M.',
+    initials: 'JM',
+    date: 'Sample alert',
+    title: 'Dark green Gazelle taken near Wyck',
+    area: 'Wyck, near the station',
+    lastSeenOn: '2025-03-14',
+    body: 'Green city bike with a wooden crate on the back and a bell shaped like a ladybird. If you spot something similar parked for days, a quick message here would mean a lot. Thank you!',
+    photo: { src: sampleIllustration, alt: 'Line drawing of a city bike' },
+  },
   {
     id: 'sample-1',
     kind: 'meetup',
