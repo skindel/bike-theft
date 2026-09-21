@@ -2,12 +2,24 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Map, FileText, Users, ArrowUpRight, MapPin, FlaskConical, Shield } from 'lucide-react';
+import {
+  Map,
+  FileText,
+  Users,
+  Crosshair,
+  ArrowUpRight,
+  MapPin,
+  FlaskConical,
+  Shield,
+} from 'lucide-react';
+
 const navigation = [
   { href: '/map', label: 'Explore map', icon: Map },
   { href: '/reports', label: 'Report a theft', icon: FileText },
   { href: '/community', label: 'Community', icon: Users },
+  { href: '/hunt', label: 'Bike Hunt', icon: Crosshair },
 ];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
@@ -60,8 +72,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               clearer risk.
             </h3>
             <p>Urban bike intelligence for Maastricht — precise, private, and built for riders.</p>
-            <Link href="/community">
-              Meet the community <ArrowUpRight size={15} />
+            <Link href="/hunt">
+              Open Bike Hunt <ArrowUpRight size={15} />
             </Link>
           </div>
           <div className="demo-profile">

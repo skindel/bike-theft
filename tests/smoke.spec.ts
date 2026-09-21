@@ -36,6 +36,25 @@ test('prepare, download, keep across navigation, and delete a report', async ({ 
     true,
   );
 });
+test('bike hunt find, confirm, and leaderboard', async ({ page }) => {
+  await page.goto('/hunt');
+  await expect(page.getByRole('heading', { name: /Stolen bikes/i })).toBeVisible();
+  await page.getByRole('button', { name: 'I found this', exact: true }).first().click();
+  await page.getByLabel('Your email or phone').fill('finder@demo.cycle-guard');
+  await page.getByLabel('Where did you see it?').fill('Near the Maas bridge, locked to a rack.');
+  await page.getByRole('button', { name: 'Share contact' }).click();
+  await expect(page.getByRole('heading', { name: 'You’re in touch' })).toBeVisible();
+  await page.getByRole('button', { name: 'Continue hunting' }).click();
+  await page.getByRole('button', { name: /Review 1 sighting/ }).click();
+  await page.getByRole('button', { name: 'Confirm they found it' }).click();
+  await expect(page.getByText(/earns a leaderboard find/i)).toBeVisible();
+  await page.getByRole('tab', { name: 'Leaderboard' }).click();
+  await expect(page.getByRole('heading', { name: 'Finders who bring bikes home' })).toBeVisible();
+  await expect(page.getByText('Elise Meijer')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+});
 test('community posts are session only and filterable', async ({ page }) => {
   await page.goto('/community');
   await page.getByRole('button', { name: 'Create a post' }).click();
