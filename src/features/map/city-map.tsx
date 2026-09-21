@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import type { ParkingLocation } from '@/contracts';
-import { parking } from './fixtures';
 import { theftHeatmapLayer, type TheftHeatPoint } from './theft-heatmap';
 import { neighbourhoodLayer, type NeighbourhoodPick } from './neighbourhood-layer';
 import type { NeighbourhoodFeature } from './neighbourhoods';
@@ -19,6 +18,8 @@ export function CityMap({
   onHoverNeighbourhood,
   showHeatmap,
   heatPoints,
+  showParkings,
+  parkingLocations,
   visibleIds,
 }: {
   selected: ParkingLocation | null;
@@ -29,6 +30,8 @@ export function CityMap({
   onHoverNeighbourhood: (info: NeighbourhoodPick) => void;
   showHeatmap: boolean;
   heatPoints: TheftHeatPoint[];
+  showParkings: boolean;
+  parkingLocations: ParkingLocation[];
   visibleIds: string[];
 }) {
   const container = useRef<HTMLDivElement>(null);
@@ -67,18 +70,6 @@ export function CityMap({
         window.clearTimeout(loadingTimeout);
         setStatus('');
       });
-      markers.current = parking.map((place) => {
-        const el = document.createElement('button');
-        el.type = 'button';
-        el.className = 'parking-pin';
-        el.textContent = 'P';
-        el.setAttribute('aria-label', `Show ${place.name}`);
-        el.addEventListener('click', () => selectRef.current(place.id));
-        return {
-          id: place.id,
-          marker: new maplibregl.Marker({ element: el }).setLngLat(place.coordinates).addTo(map),
-        };
-      });
     } catch {
       queueMicrotask(() =>
         setStatus('Interactive map unavailable in this browser. Explore the parking list below.'),
@@ -115,13 +106,33 @@ export function CityMap({
     showHeatmap,
   ]);
   useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    markers.current.forEach(({ marker }) => marker.remove());
+    markers.current = parkingLocations.map((place) => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'parking-pin';
+      el.textContent = 'P';
+      el.setAttribute('aria-label', `Show ${place.name}`);
+      el.addEventListener('click', () => selectRef.current(place.id));
+      return {
+        id: place.id,
+        marker: new maplibregl.Marker({ element: el }).setLngLat(place.coordinates).addTo(map),
+      };
+    });
+  }, [parkingLocations]);
+  useEffect(() => {
     markers.current.forEach(({ id, marker }) => {
-      marker.getElement().style.display = visibleIds.includes(id) ? '' : 'none';
+      const visible = showParkings && visibleIds.includes(id);
+      marker.getElement().style.display = visible ? '' : 'none';
       marker.getElement().classList.toggle('selected', id === selected?.id);
     });
     if (selected)
       mapRef.current?.flyTo({ center: selected.coordinates, zoom: 15, essential: false });
-  }, [selected, visibleIds]);
+    // parkingLocations is a dep so visibility/selection re-apply right after markers
+    // are recreated by the effect above (which runs first, in source order).
+  }, [selected, visibleIds, showParkings, parkingLocations]);
   return (
     <>
       <div

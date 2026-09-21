@@ -13,16 +13,18 @@ import {
   MapPin,
   Info,
   LockKeyhole,
+  SquareParking,
   X,
   ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { parking } from './fixtures';
+import { parking as demoParking } from './fixtures';
 import { loadTheftHeatPoints, type HeatSourceResult } from './heat-source';
 import type { TheftHeatPoint } from './theft-heatmap';
 import type { NeighbourhoodPick } from './neighbourhood-layer';
 import { loadNeighbourhoods, type NeighbourhoodState } from './neighbourhood-source';
 import { rampCss, type NeighbourhoodFeature } from './neighbourhoods';
+import { loadParkings, type ParkingSourceResult } from './parking-source';
 import styles from './map-layers.module.css';
 const noPoints: TheftHeatPoint[] = [];
 const noFeatures: NeighbourhoodFeature[] = [];
@@ -40,14 +42,25 @@ export function MapExplorer() {
   const [covered, setCovered] = useState(false);
   const [showNeighbourhoods, setShowNeighbourhoods] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
+  const [showParkings, setShowParkings] = useState(true);
   const [heat, setHeat] = useState<HeatSourceResult | null>(null);
   const [areas, setAreas] = useState<NeighbourhoodState>({ status: 'loading' });
+  const [parkingSource, setParkingSource] = useState<ParkingSourceResult | null>(null);
   const [hovered, setHovered] = useState<Hovered | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
     loadTheftHeatPoints().then((result) => {
       if (active) setHeat(result);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    loadParkings().then((result) => {
+      if (active) setParkingSource(result);
     });
     return () => {
       active = false;
@@ -82,14 +95,16 @@ export function MapExplorer() {
         .slice(0, 6),
     [features],
   );
+  const isLiveParking = Boolean(parkingSource?.connected && parkingSource.parkings.length > 0);
+  const allParking = isLiveParking ? parkingSource!.parkings : demoParking;
   const filtered = useMemo(
     () =>
-      parking.filter(
+      allParking.filter(
         (p) =>
           `${p.name} ${p.area}`.toLowerCase().includes(query.toLowerCase()) &&
           (!covered || p.covered),
       ),
-    [query, covered],
+    [allParking, query, covered],
   );
   const visibleIds = useMemo(() => filtered.map((p) => p.id), [filtered]);
   const selected = filtered.find((p) => p.id === selectedId) ?? null;
@@ -137,8 +152,10 @@ export function MapExplorer() {
             <ShieldCheck size={22} />
           </span>
           <div>
-            <strong>3 parking examples</strong>
-            <span>Find them on the map below</span>
+            <strong>
+              {allParking.length} parking {allParking.length === 1 ? 'location' : 'locations'}
+            </strong>
+            <span>{isLiveParking ? 'From the city dataset' : 'Illustrative examples'}</span>
           </div>
         </div>
       </div>
@@ -177,6 +194,8 @@ export function MapExplorer() {
             onHoverNeighbourhood={onHoverNeighbourhood}
             showHeatmap={showHeatmap}
             heatPoints={heatPoints}
+            showParkings={showParkings}
+            parkingLocations={allParking}
             visibleIds={visibleIds}
           />
           <div className="map-chip">
@@ -200,6 +219,16 @@ export function MapExplorer() {
               onClick={() => setShowHeatmap(!showHeatmap)}
             >
               <Flame size={16} /> Theft heatmap{' '}
+              <span className="toggle-track">
+                <span />
+              </span>
+            </button>
+            <button
+              className={`layer-toggle ${showParkings ? 'enabled' : ''}`}
+              aria-pressed={showParkings}
+              onClick={() => setShowParkings(!showParkings)}
+            >
+              <SquareParking size={16} /> Parking{' '}
               <span className="toggle-track">
                 <span />
               </span>
@@ -251,6 +280,13 @@ export function MapExplorer() {
                   ? `Heatmap · ${heatPoints.length} aggregated points`
                   : 'Heatmap · no data source connected yet'}
             </small>
+            <small>
+              {parkingSource === null
+                ? 'Parking · loading'
+                : isLiveParking
+                  ? `Parking · ${allParking.length} locations from the city dataset`
+                  : 'Parking · showing illustrative examples'}
+            </small>
           </div>
           {selected && (
             <div className="map-detail">
@@ -261,7 +297,7 @@ export function MapExplorer() {
               >
                 <X size={17} />
               </button>
-              <span className="eyebrow">PARKING EXAMPLE</span>
+              <span className="eyebrow">{isLiveParking ? 'PARKING' : 'PARKING EXAMPLE'}</span>
               <h3>{selected.name}</h3>
               <p>{selected.note}</p>
               <a
@@ -306,7 +342,8 @@ export function MapExplorer() {
                   <strong>{place.name}</strong>
                   <small>
                     <MapPin size={12} /> {place.area} <span>·</span>{' '}
-                    {place.covered ? 'Covered' : 'Open air'} <span>·</span> Demo
+                    {place.covered ? 'Covered' : 'Open air'} <span>·</span>{' '}
+                    {isLiveParking ? 'Verified' : 'Demo'}
                   </small>
                 </span>
                 <ChevronRight size={17} />
