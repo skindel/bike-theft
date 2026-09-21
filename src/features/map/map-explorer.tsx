@@ -1,12 +1,13 @@
 'use client';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowUpRight,
   ArrowRight,
   Bike,
   ShieldCheck,
+  Flame,
   Layers,
   Search,
   MapPin,
@@ -18,6 +19,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { parking, zones } from './fixtures';
 import { activityBand, bandLabels } from './risk';
+import { loadTheftHeatPoints, type HeatSourceResult } from './heat-source';
+import type { TheftHeatPoint } from './theft-heatmap';
+import styles from './map-layers.module.css';
+const noPoints: TheftHeatPoint[] = [];
 const CityMap = dynamic(() => import('./city-map').then((mod) => mod.CityMap), {
   ssr: false,
   loading: () => <div className="map-status">Loading map…</div>,
@@ -26,7 +31,19 @@ export function MapExplorer() {
   const [query, setQuery] = useState('');
   const [covered, setCovered] = useState(false);
   const [showZones, setShowZones] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [heat, setHeat] = useState<HeatSourceResult | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    loadTheftHeatPoints().then((result) => {
+      if (active) setHeat(result);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const heatPoints = heat?.points ?? noPoints;
   const filtered = useMemo(
     () =>
       parking.filter(
@@ -115,22 +132,36 @@ export function MapExplorer() {
             selected={selected}
             onSelect={setSelectedId}
             showZones={showZones}
+            showHeatmap={showHeatmap}
+            heatPoints={heatPoints}
             visibleIds={visibleIds}
           />
           <div className="map-chip">
             <span className="live-dot" /> MAASTRICHT <span className="chip-divider" /> Illustrative
             data
           </div>
-          <button
-            className={`layer-toggle ${showZones ? 'enabled' : ''}`}
-            aria-pressed={showZones}
-            onClick={() => setShowZones(!showZones)}
-          >
-            <Layers size={16} /> Activity zones{' '}
-            <span className="toggle-track">
-              <span />
-            </span>
-          </button>
+          <div className={styles.stack}>
+            <button
+              className={`layer-toggle ${showZones ? 'enabled' : ''}`}
+              aria-pressed={showZones}
+              onClick={() => setShowZones(!showZones)}
+            >
+              <Layers size={16} /> Activity zones{' '}
+              <span className="toggle-track">
+                <span />
+              </span>
+            </button>
+            <button
+              className={`layer-toggle ${showHeatmap ? 'enabled' : ''}`}
+              aria-pressed={showHeatmap}
+              onClick={() => setShowHeatmap(!showHeatmap)}
+            >
+              <Flame size={16} /> Theft heatmap{' '}
+              <span className="toggle-track">
+                <span />
+              </span>
+            </button>
+          </div>
           <div className="map-legend">
             <strong>
               Recorded theft activity <Info size={13} />
@@ -150,6 +181,13 @@ export function MapExplorer() {
               </span>
             </div>
             <small>Synthetic examples · not a prediction</small>
+            <small>
+              {heat === null
+                ? 'Heatmap · loading'
+                : heat.connected
+                  ? `Heatmap · ${heatPoints.length} aggregated points`
+                  : 'Heatmap · no data source connected yet'}
+            </small>
           </div>
           {selected && (
             <div className="map-detail">
