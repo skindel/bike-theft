@@ -1,7 +1,7 @@
 'use client';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowUpRight,
   ArrowRight,
@@ -17,22 +17,32 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { parking, zones } from './fixtures';
-import { activityBand, bandLabels } from './risk';
+import { parking } from './fixtures';
 import { loadTheftHeatPoints, type HeatSourceResult } from './heat-source';
 import type { TheftHeatPoint } from './theft-heatmap';
+import type { NeighbourhoodPick } from './neighbourhood-layer';
+import { loadNeighbourhoods, type NeighbourhoodState } from './neighbourhood-source';
+import { rampCss, type NeighbourhoodFeature } from './neighbourhoods';
 import styles from './map-layers.module.css';
 const noPoints: TheftHeatPoint[] = [];
+const noFeatures: NeighbourhoodFeature[] = [];
 const CityMap = dynamic(() => import('./city-map').then((mod) => mod.CityMap), {
   ssr: false,
   loading: () => <div className="map-status">Loading map…</div>,
 });
+type Hovered = { name: string; count: number | null; per100: number | null; x: number; y: number };
+function formatPer100(value: number | null) {
+  if (value === null) return 'no data';
+  return value.toLocaleString('en-GB', { maximumFractionDigits: 2 });
+}
 export function MapExplorer() {
   const [query, setQuery] = useState('');
   const [covered, setCovered] = useState(false);
-  const [showZones, setShowZones] = useState(true);
+  const [showNeighbourhoods, setShowNeighbourhoods] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [heat, setHeat] = useState<HeatSourceResult | null>(null);
+  const [areas, setAreas] = useState<NeighbourhoodState>({ status: 'loading' });
+  const [hovered, setHovered] = useState<Hovered | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
@@ -43,7 +53,35 @@ export function MapExplorer() {
       active = false;
     };
   }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    loadNeighbourhoods(controller.signal)
+      .then((data) => setAreas({ status: 'ready', data }))
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setAreas({
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Could not load neighbourhoods.',
+        });
+      });
+    return () => controller.abort();
+  }, []);
+  const onHoverNeighbourhood = useCallback((info: NeighbourhoodPick) => {
+    if (!info.object) return setHovered(null);
+    const { name, count, per100 } = info.object.properties;
+    setHovered({ name, count, per100, x: info.x, y: info.y });
+  }, []);
   const heatPoints = heat?.points ?? noPoints;
+  const ready = areas.status === 'ready' ? areas.data : null;
+  const features = ready?.features ?? noFeatures;
+  const ranked = useMemo(
+    () =>
+      features
+        .filter((feature) => feature.properties.per100 !== null)
+        .sort((a, b) => (b.properties.per100 ?? 0) - (a.properties.per100 ?? 0))
+        .slice(0, 6),
+    [features],
+  );
   const filtered = useMemo(
     () =>
       parking.filter(
@@ -88,8 +126,10 @@ export function MapExplorer() {
             <Layers size={22} />
           </span>
           <div>
-            <strong>3 example zones</strong>
-            <span>Explore the activity layer</span>
+            <strong>{ready ? `${ready.features.length} neighbourhoods` : 'Neighbourhoods'}</strong>
+            <span>
+              {ready ? `${ready.matched} with recorded theft data` : 'Official CBS 2024 boundaries'}
+            </span>
           </div>
         </div>
         <div className="overview-card">
@@ -131,22 +171,25 @@ export function MapExplorer() {
           <CityMap
             selected={selected}
             onSelect={setSelectedId}
-            showZones={showZones}
+            showNeighbourhoods={showNeighbourhoods}
+            neighbourhoods={features}
+            neighbourhoodMax={ready?.max ?? null}
+            onHoverNeighbourhood={onHoverNeighbourhood}
             showHeatmap={showHeatmap}
             heatPoints={heatPoints}
             visibleIds={visibleIds}
           />
           <div className="map-chip">
-            <span className="live-dot" /> MAASTRICHT <span className="chip-divider" /> Illustrative
-            data
+            <span className="live-dot" /> MAASTRICHT <span className="chip-divider" />
+            {ready?.connected ? 'CBS 2024 boundaries' : 'Boundaries only'}
           </div>
           <div className={styles.stack}>
             <button
-              className={`layer-toggle ${showZones ? 'enabled' : ''}`}
-              aria-pressed={showZones}
-              onClick={() => setShowZones(!showZones)}
+              className={`layer-toggle ${showNeighbourhoods ? 'enabled' : ''}`}
+              aria-pressed={showNeighbourhoods}
+              onClick={() => setShowNeighbourhoods(!showNeighbourhoods)}
             >
-              <Layers size={16} /> Activity zones{' '}
+              <Layers size={16} /> Neighbourhoods{' '}
               <span className="toggle-track">
                 <span />
               </span>
@@ -162,25 +205,45 @@ export function MapExplorer() {
               </span>
             </button>
           </div>
+          {hovered && (
+            <div className={styles.tooltip} style={{ left: hovered.x + 14, top: hovered.y + 14 }}>
+              <strong>{hovered.name}</strong>
+              <span>{formatPer100(hovered.per100)} per 100</span>
+              {hovered.count !== null && <span>{hovered.count} recorded</span>}
+            </div>
+          )}
           <div className="map-legend">
             <strong>
-              Recorded theft activity <Info size={13} />
+              Thefts per 100 · 2024 <Info size={13} />
             </strong>
-            <div>
-              <span>
-                <i className="dot low" />
-                Lower
-              </span>
-              <span>
-                <i className="dot medium" />
-                Moderate
-              </span>
-              <span>
-                <i className="dot high" />
-                Higher
-              </span>
-            </div>
-            <small>Synthetic examples · not a prediction</small>
+            {ready && ready.max !== null ? (
+              <>
+                <div
+                  className={styles.scale}
+                  style={{ background: `linear-gradient(90deg, ${rampCss().join(', ')})` }}
+                  aria-hidden
+                />
+                <div className={styles.scaleLabels}>
+                  <span>0</span>
+                  <span>{formatPer100(ready.max)}</span>
+                </div>
+                <div className={styles.noDataKey}>
+                  <i />
+                  No data
+                </div>
+              </>
+            ) : (
+              <div>
+                <span>
+                  {areas.status === 'loading'
+                    ? 'Loading neighbourhoods…'
+                    : areas.status === 'error'
+                      ? areas.message
+                      : 'No theft statistics connected yet'}
+                </span>
+              </div>
+            )}
+            <small>Recorded activity, not a probability of theft</small>
             <small>
               {heat === null
                 ? 'Heatmap · loading'
@@ -214,8 +277,8 @@ export function MapExplorer() {
         <div className="map-disclaimer">
           <Info size={15} />
           <span>
-            A preview of what’s possible. Zones, counts and parking details are illustrative, not
-            live safety advice.
+            Boundaries are the official CBS 2024 neighbourhoods. Parking details are illustrative,
+            and shading shows recorded activity, not live safety advice.
           </span>
           <a href="#activity">
             How to read the map <ArrowRight size={14} />
@@ -278,18 +341,25 @@ export function MapExplorer() {
           <div className="eyebrow">UNDERSTAND THE LAYER</div>
           <h2>Activity isn’t probability.</h2>
           <p>
-            These fictional counts demonstrate the interface. Real data needs matching time periods
-            and verified boundaries. A lower-activity zone never guarantees a bike’s safety.
+            Darker shading means more recorded thefts per 100 in that neighbourhood, compared across
+            one period and the same official boundaries. Reporting rates and how many bikes pass
+            through differ by area, so a lighter neighbourhood never guarantees a bike’s safety.
           </p>
         </div>
         <div className="zone-summaries">
-          {zones.map((zone) => (
-            <div key={zone.id}>
-              <span className={`dot ${activityBand(zone.count)}`} />
-              <strong>{zone.name}</strong>
-              <span>{bandLabels[activityBand(zone.count)]}</span>
+          {ranked.map((feature) => (
+            <div key={feature.properties.code}>
+              <strong>{feature.properties.name}</strong>
+              <span>{formatPer100(feature.properties.per100)} per 100</span>
             </div>
           ))}
+          {ranked.length === 0 && (
+            <div className="empty-state">
+              {areas.status === 'error'
+                ? areas.message
+                : 'Neighbourhood statistics are not connected yet.'}
+            </div>
+          )}
         </div>
       </section>
     </>

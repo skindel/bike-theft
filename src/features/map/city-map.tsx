@@ -3,24 +3,30 @@ import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import type { ParkingLocation } from '@/contracts';
-import { parking, zones } from './fixtures';
-import { activityBand } from './risk';
+import { parking } from './fixtures';
 import { theftHeatmapLayer, type TheftHeatPoint } from './theft-heatmap';
-const colors = { low: '#2DD4BF', medium: '#FACC15', high: '#FB923C', unknown: '#94A3B8' };
+import { neighbourhoodLayer, type NeighbourhoodPick } from './neighbourhood-layer';
+import type { NeighbourhoodFeature } from './neighbourhoods';
 // MapLibre cannot resolve its own worker module through the bundler, and without a worker
 // no vector tile is ever parsed. scripts/copy-maplibre-worker.mjs puts it under public/.
 maplibregl.config.WORKER_URL = '/maplibre/maplibre-gl-worker.mjs';
 export function CityMap({
   selected,
   onSelect,
-  showZones,
+  showNeighbourhoods,
+  neighbourhoods,
+  neighbourhoodMax,
+  onHoverNeighbourhood,
   showHeatmap,
   heatPoints,
   visibleIds,
 }: {
   selected: ParkingLocation | null;
   onSelect: (id: string) => void;
-  showZones: boolean;
+  showNeighbourhoods: boolean;
+  neighbourhoods: NeighbourhoodFeature[];
+  neighbourhoodMax: number | null;
+  onHoverNeighbourhood: (info: NeighbourhoodPick) => void;
   showHeatmap: boolean;
   heatPoints: TheftHeatPoint[];
   visibleIds: string[];
@@ -61,31 +67,6 @@ export function CityMap({
         window.clearTimeout(loadingTimeout);
         setStatus('');
       });
-      map.on('style.load', () => {
-        map.addSource('zones', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: zones.map((zone) => ({
-              type: 'Feature',
-              properties: { color: colors[activityBand(zone.count)] },
-              geometry: { type: 'Polygon', coordinates: [zone.coordinates] },
-            })),
-          },
-        });
-        map.addLayer({
-          id: 'zone-fill',
-          type: 'fill',
-          source: 'zones',
-          paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.32 },
-        });
-        map.addLayer({
-          id: 'zone-line',
-          type: 'line',
-          source: 'zones',
-          paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.65 },
-        });
-      });
       markers.current = parking.map((place) => {
         const el = document.createElement('button');
         el.type = 'button';
@@ -114,22 +95,25 @@ export function CityMap({
     };
   }, []);
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    function apply() {
-      for (const id of ['zone-fill', 'zone-line'])
-        if (map?.getLayer(id))
-          map.setLayoutProperty(id, 'visibility', showZones ? 'visible' : 'none');
-    }
-    apply();
-    map.on('style.load', apply);
-    return () => {
-      map.off('style.load', apply);
-    };
-  }, [showZones]);
-  useEffect(() => {
-    overlayRef.current?.setProps({ layers: [theftHeatmapLayer(heatPoints, showHeatmap)] });
-  }, [heatPoints, showHeatmap]);
+    overlayRef.current?.setProps({
+      layers: [
+        neighbourhoodLayer({
+          features: neighbourhoods,
+          max: neighbourhoodMax,
+          visible: showNeighbourhoods,
+          onHover: onHoverNeighbourhood,
+        }),
+        theftHeatmapLayer(heatPoints, showHeatmap),
+      ],
+    });
+  }, [
+    neighbourhoods,
+    neighbourhoodMax,
+    showNeighbourhoods,
+    onHoverNeighbourhood,
+    heatPoints,
+    showHeatmap,
+  ]);
   useEffect(() => {
     markers.current.forEach(({ id, marker }) => {
       marker.getElement().style.display = visibleIds.includes(id) ? '' : 'none';
@@ -143,7 +127,7 @@ export function CityMap({
       <div
         className="map-canvas"
         ref={container}
-        aria-label="Interactive map of Maastricht with illustrative theft zones and parking"
+        aria-label="Interactive map of Maastricht neighbourhoods shaded by recorded bicycle theft activity, with parking examples"
       />
       {status && (
         <div className="map-status" role="status">
