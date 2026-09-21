@@ -13,6 +13,53 @@
   right: auto;
   top: auto;
 }
+.scale {
+  height: 8px;
+  border-radius: 4px;
+}
+.scaleLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #cbd5e1;
+  margin-top: 5px;
+}
+.noDataKey {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  color: #94a3b8;
+  margin-top: 7px;
+}
+.noDataKey i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+  opacity: 0.4;
+}
+.tooltip {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  background: #0b111b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 200px;
+}
+.tooltip strong {
+  font-size: 11px;
+}
+.tooltip span {
+  font-size: 9px;
+  color: #94a3b8;
+}
 @media (max-width: 640px) {
   .stack {
     right: 12px;

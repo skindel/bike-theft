@@ -1,5 +1,25 @@
-# Demo activity bands (demo-v1)
+# Neighbourhood shading (neighbourhood-v1)
 
-These counts and polygons are synthetic fixtures, not official statistics or neighborhood boundaries. They represent one fictional, identical 90-day period. The bands are arbitrary UI examples: 0–9 lower, 10–24 moderate, 25+ higher, missing/invalid gray. Zero is not a safety guarantee. The code does not combine periods or incorporate submitted reports.
+## What the map shows
 
-Before replacing fixtures, verify a licensed source, retain actual source geometry and periods, establish comparable units and documented thresholds, distinguish official counts from community reports, and handle suppression/duplicates. Do not interpret these counts as theft probability or monetary expected loss. Parking coordinates and attributes are also illustrative, pending verification.
+Each filled area is one official CBS _buurt_ (neighbourhood) for the municipality of Maastricht, taken from the CBS Wijk- en Buurtkaart 2024 through the PDOK WFS service. Water-only buurten are excluded. The geometry is used at its published resolution and is only rounded to five decimal places (roughly one metre) to reduce the payload. No boundary is invented, simplified into a different shape, or interpolated.
+
+The fill colour encodes the _count per 100_ value held in the Supabase table `neighbourhood-data-2024`, joined to the boundary by neighbourhood name (case-, accent- and whitespace-insensitive). Nothing is computed from individual coordinates, so no false street-level precision is implied.
+
+## Colour scale
+
+The scale is linear from 0 to the highest per-100 value present in the response, interpolated across five stops: teal, yellow, orange, salmon, crimson. The legend prints both ends of that range, so a colour can be read back to a number. The scale is relative to the current data: if the maximum changes, every colour changes with it.
+
+A neighbourhood with no matching row, or a non-numeric value, is drawn in flat grey and labelled "No data" in the legend. Grey is not zero and zero is not safety.
+
+## Limits that must be stated alongside the map
+
+- This is **recorded theft activity per 100**, not a probability of theft and not a calibrated risk. It has no time horizon attached.
+- The denominator of the per-100 figure comes from the source table and must be confirmed and labelled precisely (per 100 residents, per 100 bicycles, and per 100 households are not interchangeable) before this is shown to the public.
+- Reporting rates and bicycle throughput differ sharply between a station area, a shopping centre and a residential street. A lighter neighbourhood may simply be under-reported or have fewer bikes present.
+- All areas must cover the same period. The join does not check periods, so the table must hold one comparable period per row.
+- Community self-reports are not merged into this layer. Official statistics and user submissions must stay distinguishable, and small counts need suppression before any opt-in reports contribute.
+
+## Legacy demo bands
+
+`risk.ts` still exposes the older synthetic `low / medium / high / unknown` bands (0–9, 10–24, 25+) used by the earlier fixture zones. They are not used by the neighbourhood layer and should be removed once nothing depends on them.
