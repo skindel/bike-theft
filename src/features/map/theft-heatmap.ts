@@ -22,10 +22,5 @@ export function theftHeatmapLayer(points: TheftHeatPoint[], visible: boolean) {
     threshold: 0.06,
     aggregation: 'SUM',
     pickable: false,
-    // HeatmapLayer's aggregated texture only regenerates `debounceTimeout` ms after the
-    // viewport stops changing; until then the old texture is stretched over the new zoom,
-    // making points visibly balloon or shrink mid-gesture before snapping to their true
-    // (zoom-independent) size. Recomputing immediately removes that stretch-and-snap.
-    debounceTimeout: 0,
   });
 }
