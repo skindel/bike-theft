@@ -16,7 +16,7 @@ import { reportSchema, type TheftReport, type SavedReport } from '@/contracts';
 import { useDemo } from '@/lib/demo-provider';
 import { Button } from '@/components/ui/button';
 function summary(report: SavedReport) {
-  return `BIKEWATCH — PERSONAL THEFT SUMMARY\nNot an official police report.\n\nBike: ${report.brand} / ${report.type} / ${report.color}\nFrame number: ${report.serial || 'Unknown'}\nLocation: ${report.location}\nLast seen (entered local time): ${report.lastSeen}\nDiscovered missing (entered local time): ${report.discovered}\n\nDetails:\n${report.details || 'None provided'}\n\nPrepared: ${report.createdAt}\nReference: ${report.id}`;
+  return `CYCLEGUARD — PERSONAL THEFT SUMMARY\nNot an official police report.\n\nBike: ${report.brand} / ${report.type} / ${report.color}\nFrame number: ${report.serial || 'Unknown'}\nLocation: ${report.location}\nLast seen (entered local time): ${report.lastSeen}\nDiscovered missing (entered local time): ${report.discovered}\n\nDetails:\n${report.details || 'None provided'}\n\nPrepared: ${report.createdAt}\nReference: ${report.id}`;
 }
 function download(report: SavedReport) {
   const url = URL.createObjectURL(
@@ -251,7 +251,7 @@ export function ReportWorkspace() {
           </section>
           <div className="small-note">
             <ShieldCheck size={20} />
-            <p>Preparing a BikeWatch summary does not file an official police report.</p>
+            <p>Preparing a CycleGuard summary does not file an official police report.</p>
           </div>
         </aside>
       </div>

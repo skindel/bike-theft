@@ -1,16 +1,8 @@
 'use client';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Bike,
-  Map,
-  FileText,
-  Users,
-  ArrowUpRight,
-  MapPin,
-  FlaskConical,
-  Heart,
-} from 'lucide-react';
+import { Map, FileText, Users, ArrowUpRight, MapPin, FlaskConical, Shield } from 'lucide-react';
 const navigation = [
   { href: '/map', label: 'Explore map', icon: Map },
   { href: '/reports', label: 'Report a theft', icon: FileText },
@@ -26,14 +18,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="sidebar no-print">
         <Link className="brand" href="/map">
           <span className="brand-mark">
-            <Bike size={27} />
+            <Image
+              src="/cycle-guard-logo.png"
+              alt=""
+              width={36}
+              height={36}
+              priority
+              className="brand-logo"
+            />
           </span>
-          BikeWatch<span className="brand-dot">.</span>
+          <span className="brand-wordmark">
+            Cycle<span className="brand-accent">Guard</span>
+          </span>
         </Link>
         <div className="city-label">
           <MapPin size={13} /> MADE FOR MAASTRICHT
         </div>
-        <div className="nav-label">YOUR NEIGHBOURHOOD</div>
+        <div className="nav-label">INTELLIGENCE</div>
         <nav aria-label="Main navigation">
           {navigation.map(({ href, label, icon: Icon }) => (
             <Link
@@ -42,7 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className={`nav-item ${pathname.startsWith(href) ? 'active' : ''}`}
               aria-current={pathname.startsWith(href) ? 'page' : undefined}
             >
-              <Icon size={19} />
+              <Icon size={18} />
               <span>{label}</span>
               {pathname.startsWith(href) && <span className="nav-dot" />}
             </Link>
@@ -51,20 +52,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="sidebar-bottom">
           <div className="sidebar-note">
             <span className="note-icon">
-              <Heart size={19} />
+              <Shield size={18} />
             </span>
             <h3>
-              A better ride,
+              Safer parking,
               <br />
-              together.
+              clearer risk.
             </h3>
-            <p>A little local knowledge goes a long way. Look out for your bike. And each other.</p>
+            <p>Urban bike intelligence for Maastricht — precise, private, and built for riders.</p>
             <Link href="/community">
               Meet the community <ArrowUpRight size={15} />
             </Link>
           </div>
           <div className="demo-profile">
-            <span>BW</span>
+            <span>CG</span>
             <div>
               <strong>Hackathon edition</strong>
               <small>Built for our city</small>
@@ -84,7 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
         <main id="main">{children}</main>
         <footer className="app-footer no-print">
-          <span>Made for two wheels. Built for Maastricht.</span>
+          <span>CycleGuard · Mobility intelligence for Maastricht</span>
           <span>Demo data · Not a live safety assessment</span>
         </footer>
       </div>

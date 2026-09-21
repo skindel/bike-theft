@@ -4,7 +4,7 @@ import * as maplibregl from 'maplibre-gl';
 import type { ParkingLocation } from '@/contracts';
 import { parking, zones } from './fixtures';
 import { activityBand } from './risk';
-const colors = { low: '#62a88e', medium: '#eebc58', high: '#e78875', unknown: '#94a3b8' };
+const colors = { low: '#2DD4BF', medium: '#FACC15', high: '#FB923C', unknown: '#94A3B8' };
 export function CityMap({
   selected,
   onSelect,
@@ -38,7 +38,7 @@ export function CityMap({
         minZoom: 11,
         maxZoom: 18,
         style:
-          process.env.NEXT_PUBLIC_MAP_STYLE_URL || 'https://tiles.openfreemap.org/styles/positron',
+          process.env.NEXT_PUBLIC_MAP_STYLE_URL || 'https://tiles.openfreemap.org/styles/dark',
       });
       mapRef.current = map;
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');

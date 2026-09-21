@@ -241,7 +241,7 @@ export function MapExplorer() {
           <h2>Activity isn’t probability.</h2>
           <p>
             These fictional counts demonstrate the interface. Real data needs matching time periods
-            and verified boundaries. A green zone never guarantees a bike’s safety.
+            and verified boundaries. A lower-activity zone never guarantees a bike’s safety.
           </p>
         </div>
         <div className="zone-summaries">
